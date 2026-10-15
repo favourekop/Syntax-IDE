@@ -1,2 +1,2 @@
 # Syntax-IDE
-Build,Ship, Deploy
+Build, Ship, Deploy
