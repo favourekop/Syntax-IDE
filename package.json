@@ -1,0 +1,21 @@
+
+{
+  "name": "syntax-ide",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SYNTAX IDE — Beyond the Code",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "start": "vite --host 0.0.0.0 --port $PORT"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "lucide-react": "latest"
+  },
+  "devDependencies": {}
+}
