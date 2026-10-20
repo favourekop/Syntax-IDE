@@ -51,6 +51,31 @@ export default function App() {
   };
 
   useEffect(() => {
+    function handleWorkspaceShortcuts(event) {
+      const modifier = event.ctrlKey || event.metaKey;
+      if (!modifier) return;
+      if (event.key.toLowerCase() === 'p') {
+        event.preventDefault();
+        const target = window.prompt('Quick Open — enter an exact file name:\n' + files.map((file) => file.name).join('\n'), activeName);
+        if (target && files.some((file) => file.name === target)) {
+          setActiveName(target);
+          setActivePanel('Explorer');
+        } else if (target) {
+          setNotice('No workspace file named "' + target + '".');
+        }
+      } else if (event.shiftKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        setActivePanel('Search');
+      } else if (event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        setNotice('Your workspace is saved automatically in this browser. Use Export for a portable backup.');
+      }
+    }
+    window.addEventListener('keydown', handleWorkspaceShortcuts);
+    return () => window.removeEventListener('keydown', handleWorkspaceShortcuts);
+  }, [files, activeName]);
+
+  useEffect(() => {
     let active = true;
     getCurrentSession().then(({ session }) => { if (active) setAuthUser(session?.user ?? null); });
     const { data } = supabase?.auth.onAuthStateChange((_event, session) => setAuthUser(session?.user ?? null)) ?? { data: null };
