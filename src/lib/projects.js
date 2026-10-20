@@ -29,6 +29,14 @@ export async function saveCloudProject(name, files, projectId = null) {
     if (error) throw error;
     project = data;
   }
+  const { data: existingRows, error: existingError } = await client.from('project_files').select('path').eq('project_id', project.id);
+  if (existingError) throw existingError;
+  const currentPaths = new Set(files.map((file) => file.name));
+  const stalePaths = (existingRows ?? []).map((row) => row.path).filter((path) => !currentPaths.has(path));
+  if (stalePaths.length) {
+    const { error: deleteError } = await client.from('project_files').delete().eq('project_id', project.id).in('path', stalePaths);
+    if (deleteError) throw deleteError;
+  }
   const rows = files.map((file) => ({ project_id: project.id, owner_id: user.id, path: file.name, language: file.language || 'plaintext', content: file.content ?? '', updated_at: new Date().toISOString() }));
   const { error: filesError } = await client.from('project_files').upsert(rows, { onConflict: 'project_id,path' });
   if (filesError) throw filesError;
