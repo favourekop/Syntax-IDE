@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  web-build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -19,8 +19,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - name: Install dependencies
+      - name: Install web dependencies
         run: npm install
       - name: Build web app
+        run: npm run build
+
+  api-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install API dependencies
+        run: npm install
+      - name: Build API
         run: npm run build
