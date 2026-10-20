@@ -29,6 +29,7 @@ export default function App() {
   const [activePanel, setActivePanel] = useState('Explorer');
   const [terminalOpen, setTerminalOpen] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [collapsedFolders, setCollapsedFolders] = useState({});
   const [terminalText, setTerminalText] = useState('SYNTAX IDE terminal\nWorkspace shell is not connected yet.\n');
   const [command, setCommand] = useState('');
   const [notice, setNotice] = useState('');
@@ -54,7 +55,7 @@ export default function App() {
   const previewDocument = useMemo(() => {
     const htmlFile = files.find((file) => file.name.split('/').pop().toLowerCase() === 'index.html');
     const css = files.filter((file) => file.name.toLowerCase().endsWith('.css')).map((file) => file.content).join('\n');
-    const js = files.filter((file) => /\.(js|jsx|ts|tsx)$/.test(file.name.toLowerCase())).map((file) => file.content).join('\n;\n');
+    const js = files.filter((file) => file.name.toLowerCase().endsWith('.js')).map((file) => file.content).join('\n;\n');
     let html = htmlFile?.content || '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SYNTAX Preview</title></head><body><main id="app"><h1>Beyond the Code.</h1><p>Create an index.html file to customize this preview.</p></main></body></html>';
     const styleTag = css ? '<style>' + css.replaceAll('</style', '<\\/style') + '</style>' : '';
     const scriptTag = js ? '<script>' + js.replaceAll('</script', '<\\/script') + '</script>' : '';
@@ -170,7 +171,7 @@ export default function App() {
 
       const seenNames = new Set();
       const restoredFiles = payload.files.map((file) => {
-        if (!file || typeof file.name !== 'string' || !/^[\w.-]{1,180}$/.test(file.name) || file.name === '.' || file.name === '..') {
+        if (!file || typeof file.name !== 'string' || file.name.length > 180 || !file.name.split('/').every((part) => /^[\w.-]{1,100}$/.test(part) && part !== '.' && part !== '..')) {
           throw new Error('The backup contains an invalid file name.');
         }
         if (seenNames.has(file.name)) throw new Error('The backup contains duplicate file names.');
@@ -202,7 +203,7 @@ export default function App() {
   function createFile() {
     const name = window.prompt('New file name (for example app.ts):');
     if (!name) return;
-    if (!/^[\w.-]+$/.test(name) || files.some((file) => file.name === name)) {
+    if (name.length > 180 || !name.split('/').every((part) => /^[\w.-]{1,100}$/.test(part) && part !== '.' && part !== '..') || files.some((file) => file.name === name)) {
       setNotice('Choose a unique file name using letters, numbers, dots, dashes or underscores.');
       return;
     }
@@ -217,7 +218,7 @@ export default function App() {
     if (!activeFile) return;
     const nextName = window.prompt('Rename file:', activeFile.name);
     if (!nextName || nextName === activeFile.name) return;
-    if (!/^[\w.-]{1,180}$/.test(nextName) || nextName === '.' || nextName === '..' || files.some((file) => file.name === nextName)) {
+    if (nextName.length > 180 || !nextName.split('/').every((part) => /^[\w.-]{1,100}$/.test(part) && part !== '.' && part !== '..') || files.some((file) => file.name === nextName)) {
       setNotice('Choose a unique file name using letters, numbers, dots, dashes or underscores.');
       return;
     }
@@ -267,12 +268,12 @@ export default function App() {
           <div className="sidebar-heading"><span>{activePanel.toUpperCase()}</span><div className="sidebar-tools">{activePanel === 'Explorer' && <><button onClick={renameActiveFile} title="Rename active file"><Pencil size={14} /></button><button onClick={deleteActiveFile} title="Delete active file"><Trash2 size={14} /></button></>}<button onClick={createFile} title="New file"><span className="plus">+</span></button></div></div>
           {activePanel === 'Cloud Projects' ? <CloudProjectsPanel authUser={authUser} files={files} onLoad={(project, loadedFiles) => { setFiles(loadedFiles); setActiveName(loadedFiles[0]?.name ?? 'main.js'); setNotice('Loaded cloud project: ' + project.name); setActivePanel('Explorer'); }} onNotice={setNotice} /> : activePanel === 'Explorer' ? <>
             <div className="tree-heading"><ChevronDown size={14} /><span>SYNTAX-WORKSPACE</span><button onClick={createFile} title="New file">+</button></div>
-            <div className="file-list">{folderGroups.map(([folder, groupedFiles]) => <div className="file-group" key={folder || '__root__'}>{folder && <div className="folder-row"><Folder size={14} /><span>{folder}</span></div>}{groupedFiles.map((file) => <button key={file.name} className={activeName === file.name ? 'file-row selected' : 'file-row'} onClick={() => { setActiveName(file.name); setPreviewOpen(false); }}><FileCode2 size={15} /><span>{file.name.split('/').pop()}</span></button>)}</div>)}</div>
+            <div className="file-list">{folderGroups.map(([folder, groupedFiles]) => <div className="file-group" key={folder || '__root__'}>{folder && <button className="folder-row" onClick={() => setCollapsedFolders((current) => ({ ...current, [folder]: !current[folder] }))} aria-expanded={!collapsedFolders[folder]}>{collapsedFolders[folder] ? <ChevronRight size={14} /> : <ChevronDown size={14} />}<Folder size={14} /><span>{folder}</span></button>}{(!folder || !collapsedFolders[folder]) && groupedFiles.map((file) => <button key={file.name} className={activeName === file.name ? 'file-row selected' : 'file-row'} onClick={() => { setActiveName(file.name); setPreviewOpen(false); }}><FileCode2 size={15} /><span>{file.name.split('/').pop()}</span></button>)}</div>)}</div>
             <div className="sidebar-bottom"><Activity size={14} /><span>Draft workspace · local only</span></div>
           </> : activePanel === 'Search' ? <div className="search-panel"><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search names and code…" aria-label="Search file names and contents" /><p className="search-hint">Search across file names and source code.</p>{matchingFiles.length ? matchingFiles.map((file) => <button key={file.name} className="search-result" onClick={() => { setActiveName(file.name); setActivePanel('Explorer'); }}><span className="search-result-title"><FileCode2 size={14} />{file.name}</span>{searchExcerpt(file.content, searchQuery) && <code>{searchExcerpt(file.content, searchQuery)}</code>}</button>) : <p>No matching files or code lines.</p>}</div> : activePanel === 'Account' ? <div className="account-panel">{authUser ? <><strong>Signed in</strong><p>{authUser.email}</p><button className="auth-button secondary" onClick={handleSignOut}>Sign out</button></> : <><strong>{authMode === 'signup' ? 'Create your account' : 'Sign in to SYNTAX'}</strong><p>{supabaseConfigured ? 'Use your email to access your account.' : 'Authentication UI is ready. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in hosting settings to activate sign-in.'}</p><form onSubmit={handleAuth}><label>Email<input type="email" autoComplete="email" required value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="you@example.com" /></label><label>Password<input type="password" autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'} minLength={6} required value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="At least 6 characters" /></label><button className="auth-button" type="submit" disabled={authBusy || !supabaseConfigured}>{authBusy ? 'Please wait…' : authMode === 'signup' ? 'Create account' : 'Sign in'}</button></form><button className="auth-mode-switch" onClick={() => setAuthMode(authMode === 'signup' ? 'signin' : 'signup')}>{authMode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create an account'}</button></>}</div> : <div className="empty-panel"><WandSparkles size={22} /><strong>{activePanel}</strong><p>This tool is scaffolded for a future full-stack integration.</p></div>}
         </aside>
         <section className="workbench">
-          <div className="tabs">{files.map((file) => <button key={file.name} className={activeName === file.name ? 'tab selected' : 'tab'} onClick={() => setActiveName(file.name)}><FileCode2 size={14} /><span>{file.name}</span>{activeName === file.name && <span className="tab-dot" />}</button>)}<div className="tabs-spacer" /><button className="run-button" onClick={() => { setTerminalOpen(true); setTerminalText((current) => current + '\nPreview run requested. Connect an isolated workspace runtime to execute this project.\n'); }}><Play size={14} /> Run</button></div>
+          <div className="tabs">{files.map((file) => <button key={file.name} className={activeName === file.name ? 'tab selected' : 'tab'} onClick={() => setActiveName(file.name)}><FileCode2 size={14} /><span>{file.name}</span>{activeName === file.name && <span className="tab-dot" />}</button>)}<div className="tabs-spacer" /><button className="run-button" onClick={() => setPreviewOpen((open) => !open)}>{previewOpen ? <Code2 size={14} /> : <Eye size={14} />}{previewOpen ? 'Editor' : 'Preview'}</button><button className="run-button" onClick={() => { setTerminalOpen(true); setTerminalText((current) => current + '\nBuild/run requested. Browser preview is available; shell execution still requires an isolated runtime.\n'); }}><Play size={14} /> Run</button></div>
           <div className="breadcrumb"><span>SYNTAX-WORKSPACE</span><ChevronRight size={13} /><span>{activeFile.name}</span><span className="breadcrumb-language">{languageNames[activeFile.language] ?? activeFile.language}</span></div>
           <div className={previewOpen ? 'editor-area preview-area' : 'editor-area'}>{previewOpen ? <iframe title="SYNTAX web project preview" sandbox="allow-scripts" srcDoc={previewDocument} /> : <MonacoCodeEditor value={activeFile.content} language={activeFile.language} onChange={updateContent} />}</div>
           {terminalOpen && <section className="terminal"><div className="terminal-heading"><div><button className="terminal-tab selected"><Terminal size={14} /> TERMINAL</button><button className="terminal-tab" onClick={() => setTerminalText('Output panel is ready for a connected build runner.\n')}>OUTPUT</button></div><button onClick={() => setTerminalOpen(false)} title="Close terminal"><X size={15} /></button></div><pre>{terminalText}</pre><form onSubmit={runCommand} className="terminal-input"><span>$</span><input value={command} onChange={(event) => setCommand(event.target.value)} placeholder="Type a command (preview only)" aria-label="Terminal command" /><button type="submit">Send</button></form></section>}
