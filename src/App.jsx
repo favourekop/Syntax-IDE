@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp,
+  Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp, Cloud,
   Command, FileCode2, Files, GitBranch, Play, Search, Settings2,
   ShieldCheck, Terminal, WandSparkles, X,
 } from 'lucide-react';
 import MonacoCodeEditor from './MonacoCodeEditor.jsx';
 import { getCurrentSession, signInWithEmail, signUpWithEmail, signOut, supabase, supabaseConfigured } from './lib/supabase.js';
+import CloudProjectsPanel from './CloudProjectsPanel.jsx';
 
 const initialFiles = [
   { name: 'main.js', language: 'javascript', content: "const greeting = 'Beyond the Code.';\n\nfunction startSyntax() {\n  console.log(greeting);\n}\n\nstartSyntax();\n" },
@@ -19,6 +20,7 @@ const iconActions = [
   { name: 'Source Control', icon: GitBranch },
   { name: 'Run and Debug', icon: Play },
   { name: 'Extensions', icon: Blocks },
+  { name: 'Cloud Projects', icon: Cloud },
 ];
 
 export default function App() {
@@ -116,7 +118,7 @@ export default function App() {
         </nav>
         <aside className="sidebar">
           <div className="sidebar-heading"><span>{activePanel.toUpperCase()}</span><button onClick={createFile} title="New file"><span className="plus">+</span></button></div>
-          {activePanel === 'Explorer' ? <>
+          {activePanel === 'Cloud Projects' ? <CloudProjectsPanel authUser={authUser} files={files} onLoad={(project, loadedFiles) => { setFiles(loadedFiles); setActiveName(loadedFiles[0]?.name ?? 'main.js'); setNotice('Loaded cloud project: ' + project.name); setActivePanel('Explorer'); }} onNotice={setNotice} /> : activePanel === 'Explorer' ? <>
             <div className="tree-heading"><ChevronDown size={14} /><span>SYNTAX-WORKSPACE</span><button onClick={createFile} title="New file">+</button></div>
             <div className="file-list">{files.map((file) => <button key={file.name} className={activeName === file.name ? 'file-row selected' : 'file-row'} onClick={() => setActiveName(file.name)}><FileCode2 size={15} /><span>{file.name}</span></button>)}</div>
             <div className="sidebar-bottom"><Activity size={14} /><span>Draft workspace · local only</span></div>
