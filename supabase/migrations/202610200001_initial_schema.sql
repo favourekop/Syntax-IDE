@@ -79,3 +79,32 @@ create policy "Users can read their own subscription"
 
 create index if not exists projects_owner_id_idx on public.projects(owner_id);
 create index if not exists workspace_sessions_owner_id_idx on public.workspace_sessions(owner_id);
+
+
+-- Cloud workspace files are stored separately from project metadata.
+create table if not exists public.project_files (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  path text not null check (char_length(path) between 1 and 500),
+  language text not null default 'plaintext',
+  content text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (project_id, path)
+);
+
+alter table public.project_files enable row level security;
+
+create policy "Users can manage files in their own projects"
+  on public.project_files for all to authenticated
+  using (
+    auth.uid() = owner_id
+    and exists (select 1 from public.projects p where p.id = project_id and p.owner_id = auth.uid())
+  )
+  with check (
+    auth.uid() = owner_id
+    and exists (select 1 from public.projects p where p.id = project_id and p.owner_id = auth.uid())
+  );
+
+create index if not exists project_files_project_id_idx on public.project_files(project_id);
