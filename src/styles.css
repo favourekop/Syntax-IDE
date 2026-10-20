@@ -35,3 +35,5 @@ button{color:inherit;cursor:pointer}
 .folder-row{display:flex;align-items:center;gap:7px;padding:7px 10px 5px;color:#7fa88d;font-size:10px;line-height:1.4;overflow-wrap:anywhere}.folder-row svg{flex-shrink:0;color:#35b875}.file-group+.file-group{margin-top:5px}.file-row{padding-left:18px}.preview-area{background:#f7f9f8;padding:0}.preview-area iframe{display:block;width:100%;height:100%;border:0;background:#fff;color:#111}
 
 .folder-row{width:100%;border:0;background:transparent;text-align:left;cursor:pointer;font:inherit}.folder-row:hover{background:#102319;color:#d8f5e3}.folder-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.settings-panel select{width:100%;min-width:0;padding:8px;border:1px solid #294734;border-radius:5px;outline:0;background:#07110d;color:#e4eee8;font-size:11px}.settings-panel select:focus{border-color:#35d07f}.settings-panel .setting-toggle{display:flex;flex-direction:row;align-items:center;gap:8px}.settings-panel .setting-toggle input{width:auto;accent-color:#35d07f}
