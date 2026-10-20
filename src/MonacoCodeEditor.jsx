@@ -10,6 +10,9 @@ export default function MonacoCodeEditor({
   language = 'javascript',
   onChange,
   readOnly = false,
+  fontSize = 13,
+  wordWrap = 'on',
+  minimapEnabled = false,
 }) {
   return (
     <Editor
@@ -20,11 +23,11 @@ export default function MonacoCodeEditor({
       onChange={(nextValue) => onChange?.(nextValue ?? '')}
       options={{
         automaticLayout: true,
-        minimap: { enabled: false },
-        fontSize: 13,
+        minimap: { enabled: minimapEnabled },
+        fontSize,
         tabSize: 2,
         insertSpaces: true,
-        wordWrap: 'on',
+        wordWrap,
         scrollBeyondLastLine: false,
         smoothScrolling: true,
         cursorBlinking: 'smooth',
