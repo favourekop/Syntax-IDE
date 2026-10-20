@@ -1,4 +1,3 @@
-
 {
   "name": "syntax-ide",
   "version": "0.1.0",
@@ -15,7 +14,9 @@
     "vite": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "latest"
+    "lucide-react": "latest",
+    "monaco-editor": "latest",
+    "@monaco-editor/react": "latest"
   },
   "devDependencies": {}
 }
