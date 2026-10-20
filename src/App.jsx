@@ -33,10 +33,15 @@ function buildPreviewDocument(files) {
     }
     return parts.join('/');
   };
+  const monitor = '<script>(function(){const send=(kind,args)=>{try{parent.postMessage({source:"syntax-preview",kind,text:Array.from(args).map(v=>{if(typeof v==="string")return v;try{return JSON.stringify(v)}catch{return String(v)}}).join(" ")}, "*")}catch{}};["log","warn","error","info"].forEach(k=>{const original=console[k].bind(console);console[k]=(...args)=>{original(...args);send(k,args)}});window.addEventListener("error",e=>send("error",[e.message+" ("+e.filename+":"+e.lineno+")"]));window.addEventListener("unhandledrejection",e=>send("error",["Unhandled promise rejection",e.reason]));})();<\/script>';
   const fileMap = new Map(files.map((file) => [normalize(file.name), file]));
   const htmlFile = files.find((file) => file.name.split('/').pop().toLowerCase() === 'index.html');
   let html = htmlFile?.content || '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SYNTAX Preview</title></head><body><main id="app"><h1>Beyond the Code.</h1><p>Create an index.html file to customize this preview.</p></main></body></html>';
   const htmlDirectory = htmlFile?.name.includes('/') ? htmlFile.name.slice(0, htmlFile.name.lastIndexOf('/')) : '';
+  const headCloseForMonitor = html.toLowerCase().indexOf('</head>');
+  html = headCloseForMonitor >= 0
+    ? html.slice(0, headCloseForMonitor) + monitor + html.slice(headCloseForMonitor)
+    : monitor + html;
   const findAsset = (assetPath) => {
     if (!assetPath || /^(?:[a-z]+:|\/\/|#|data:)/i.test(assetPath)) return null;
     let cleanPath;
@@ -99,6 +104,7 @@ export default function App() {
   const [authBusy, setAuthBusy] = useState(false);
   const [authUser, setAuthUser] = useState(null);
   const importInputRef = useRef(null);
+  const previewFrameRef = useRef(null);
   const activeFile = files.find((file) => file.name === activeName) ?? files[0];
   const folderGroups = useMemo(() => {
     const groups = new Map();
@@ -114,6 +120,18 @@ export default function App() {
   const languageNames = useMemo(() => ({ javascript: 'JavaScript', html: 'HTML', css: 'CSS', typescript: 'TypeScript', json: 'JSON' }), []);
 
   useEffect(() => { try { window.localStorage.setItem('syntax-ide-local-files-v1', JSON.stringify(files)); setSaveState('Saved locally'); } catch { setSaveState('Local save unavailable'); } }, [files]);
+
+  useEffect(() => {
+    function handlePreviewMessage(event) {
+      if (event.source !== previewFrameRef.current?.contentWindow) return;
+      if (event.data?.source !== 'syntax-preview' || typeof event.data.text !== 'string') return;
+      const level = ['error', 'warn'].includes(event.data.kind) ? event.data.kind.toUpperCase() : 'LOG';
+      setTerminalText((current) => current + '\\n[preview ' + level + '] ' + event.data.text.slice(0, 1200) + '\\n');
+      if (event.data.kind === 'error') setTerminalOpen(true);
+    }
+    window.addEventListener('message', handlePreviewMessage);
+    return () => window.removeEventListener('message', handlePreviewMessage);
+  }, []);
   const matchingFiles = files.filter((file) => !searchQuery.trim() || file.name.toLowerCase().includes(searchQuery.toLowerCase()) || file.content.toLowerCase().includes(searchQuery.toLowerCase()));
   const searchExcerpt = (content, query) => {
     if (!query.trim()) return '';
@@ -319,7 +337,7 @@ export default function App() {
         <section className="workbench">
           <div className="tabs">{files.map((file) => <button key={file.name} className={activeName === file.name ? 'tab selected' : 'tab'} onClick={() => setActiveName(file.name)}><FileCode2 size={14} /><span>{file.name}</span>{activeName === file.name && <span className="tab-dot" />}</button>)}<div className="tabs-spacer" /><button className="run-button" onClick={() => setPreviewOpen((open) => !open)}>{previewOpen ? <Code2 size={14} /> : <Eye size={14} />}{previewOpen ? 'Editor' : 'Preview'}</button><button className="run-button" onClick={() => { setTerminalOpen(true); setTerminalText((current) => current + '\nBuild/run requested. Browser preview is available; shell execution still requires an isolated runtime.\n'); }}><Play size={14} /> Run</button></div>
           <div className="breadcrumb"><span>SYNTAX-WORKSPACE</span><ChevronRight size={13} /><span>{activeFile.name}</span><span className="breadcrumb-language">{languageNames[activeFile.language] ?? activeFile.language}</span></div>
-          <div className={previewOpen ? 'editor-area preview-area' : 'editor-area'}>{previewOpen ? <iframe title="SYNTAX web project preview" sandbox="allow-scripts" srcDoc={previewDocument} /> : <MonacoCodeEditor value={activeFile.content} language={activeFile.language} onChange={updateContent} />}</div>
+          <div className={previewOpen ? 'editor-area preview-area' : 'editor-area'}>{previewOpen ? <iframe ref={previewFrameRef} title="SYNTAX web project preview" sandbox="allow-scripts" srcDoc={previewDocument} /> : <MonacoCodeEditor value={activeFile.content} language={activeFile.language} onChange={updateContent} />}</div>
           {terminalOpen && <section className="terminal"><div className="terminal-heading"><div><button className="terminal-tab selected"><Terminal size={14} /> TERMINAL</button><button className="terminal-tab" onClick={() => setTerminalText('Output panel is ready for a connected build runner.\n')}>OUTPUT</button></div><button onClick={() => setTerminalOpen(false)} title="Close terminal"><X size={15} /></button></div><pre>{terminalText}</pre><form onSubmit={runCommand} className="terminal-input"><span>$</span><input value={command} onChange={(event) => setCommand(event.target.value)} placeholder="Type a command (preview only)" aria-label="Terminal command" /><button type="submit">Send</button></form></section>}
           <footer className="statusbar"><span><GitBranch size={13} /> workspace*</span><span>UTF-8</span><span>{languageNames[activeFile.language] ?? activeFile.language}</span><span className="status-spacer" /><span><ShieldCheck size={13} /> {saveState}</span><span><Command size={13} /> SYNTAX</span></footer>
         </section>
