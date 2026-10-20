@@ -37,3 +37,5 @@ button{color:inherit;cursor:pointer}
 .folder-row{width:100%;border:0;background:transparent;text-align:left;cursor:pointer;font:inherit}.folder-row:hover{background:#102319;color:#d8f5e3}.folder-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .settings-panel select{width:100%;min-width:0;padding:8px;border:1px solid #294734;border-radius:5px;outline:0;background:#07110d;color:#e4eee8;font-size:11px}.settings-panel select:focus{border-color:#35d07f}.settings-panel .setting-toggle{display:flex;flex-direction:row;align-items:center;gap:8px}.settings-panel .setting-toggle input{width:auto;accent-color:#35d07f}
+
+.source-control-title{display:flex;align-items:center;gap:7px;padding:5px 3px;color:#dcefe2;font-size:12px}.source-control-title svg{color:#43d88c}.change-summary{padding:7px 9px;border:1px solid #234631;border-radius:5px;color:#9bc9aa;font-size:10px}.change-kind{align-self:flex-start;padding:2px 6px;border-radius:4px;background:#172b1e;color:#93b9a0;font-size:9px;text-transform:uppercase;letter-spacing:.4px}.change-added{color:#55d995}.change-modified{color:#e7c779}.change-deleted{color:#ed8e8e}
