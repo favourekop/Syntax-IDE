@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp,
   Command, FileCode2, Files, GitBranch, Play, Search, Settings2,
@@ -21,17 +21,23 @@ const iconActions = [
 ];
 
 export default function App() {
-  const [files, setFiles] = useState(initialFiles);
+  const [files, setFiles] = useState(() => { try { const saved = window.localStorage.getItem('syntax-ide-local-files-v1'); return saved ? JSON.parse(saved) : initialFiles; } catch { return initialFiles; } });
   const [activeName, setActiveName] = useState('main.js');
   const [activePanel, setActivePanel] = useState('Explorer');
   const [terminalOpen, setTerminalOpen] = useState(true);
   const [terminalText, setTerminalText] = useState('SYNTAX IDE terminal\nWorkspace shell is not connected yet.\n');
   const [command, setCommand] = useState('');
   const [notice, setNotice] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [saveState, setSaveState] = useState('Saved locally');
   const activeFile = files.find((file) => file.name === activeName) ?? files[0];
   const languageNames = useMemo(() => ({ javascript: 'JavaScript', html: 'HTML', css: 'CSS', typescript: 'TypeScript', json: 'JSON' }), []);
 
+  useEffect(() => { try { window.localStorage.setItem('syntax-ide-local-files-v1', JSON.stringify(files)); setSaveState('Saved locally'); } catch { setSaveState('Local save unavailable'); } }, [files]);
+  const matchingFiles = files.filter((file) => file.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
   function updateContent(value) {
+    setSaveState('Saving…');
     setFiles((current) => current.map((file) => file.name === activeName ? { ...file, content: value } : file));
   }
 
@@ -77,14 +83,14 @@ export default function App() {
             <div className="tree-heading"><ChevronDown size={14} /><span>SYNTAX-WORKSPACE</span><button onClick={createFile} title="New file">+</button></div>
             <div className="file-list">{files.map((file) => <button key={file.name} className={activeName === file.name ? 'file-row selected' : 'file-row'} onClick={() => setActiveName(file.name)}><FileCode2 size={15} /><span>{file.name}</span></button>)}</div>
             <div className="sidebar-bottom"><Activity size={14} /><span>Draft workspace · local only</span></div>
-          </> : <div className="empty-panel"><WandSparkles size={22} /><strong>{activePanel}</strong><p>This tool is scaffolded for a future full-stack integration.</p></div>}
+          </> : activePanel === 'Search' ? <div className="search-panel"><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search file names…" aria-label="Search file names" />{matchingFiles.length ? matchingFiles.map((file) => <button key={file.name} className="file-row" onClick={() => { setActiveName(file.name); setActivePanel('Explorer'); }}><FileCode2 size={15} /><span>{file.name}</span></button>) : <p>No matching files.</p>}</div> : <div className="empty-panel"><WandSparkles size={22} /><strong>{activePanel}</strong><p>This tool is scaffolded for a future full-stack integration.</p></div>}
         </aside>
         <section className="workbench">
           <div className="tabs">{files.map((file) => <button key={file.name} className={activeName === file.name ? 'tab selected' : 'tab'} onClick={() => setActiveName(file.name)}><FileCode2 size={14} /><span>{file.name}</span>{activeName === file.name && <span className="tab-dot" />}</button>)}<div className="tabs-spacer" /><button className="run-button" onClick={() => { setTerminalOpen(true); setTerminalText((current) => current + '\nPreview run requested. Connect an isolated workspace runtime to execute this project.\n'); }}><Play size={14} /> Run</button></div>
           <div className="breadcrumb"><span>SYNTAX-WORKSPACE</span><ChevronRight size={13} /><span>{activeFile.name}</span><span className="breadcrumb-language">{languageNames[activeFile.language] ?? activeFile.language}</span></div>
           <div className="editor-area"><MonacoCodeEditor value={activeFile.content} language={activeFile.language} onChange={updateContent} /></div>
           {terminalOpen && <section className="terminal"><div className="terminal-heading"><div><button className="terminal-tab selected"><Terminal size={14} /> TERMINAL</button><button className="terminal-tab" onClick={() => setTerminalText('Output panel is ready for a connected build runner.\n')}>OUTPUT</button></div><button onClick={() => setTerminalOpen(false)} title="Close terminal"><X size={15} /></button></div><pre>{terminalText}</pre><form onSubmit={runCommand} className="terminal-input"><span>$</span><input value={command} onChange={(event) => setCommand(event.target.value)} placeholder="Type a command (preview only)" aria-label="Terminal command" /><button type="submit">Send</button></form></section>}
-          <footer className="statusbar"><span><GitBranch size={13} /> main*</span><span>UTF-8</span><span>{languageNames[activeFile.language] ?? activeFile.language}</span><span className="status-spacer" /><span><ShieldCheck size={13} /> Safe preview</span><span><Command size={13} /> SYNTAX</span></footer>
+          <footer className="statusbar"><span><GitBranch size={13} /> main*</span><span>UTF-8</span><span>{languageNames[activeFile.language] ?? activeFile.language}</span><span className="status-spacer" /><span><ShieldCheck size={13} /> {saveState}</span><span><Command size={13} /> SYNTAX</span></footer>
         </section>
       </div>
       {notice && <div className="toast" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss notification"><X size={14} /></button></div>}
