@@ -56,11 +56,11 @@ export default function App() {
     const css = files.filter((file) => file.name.toLowerCase().endsWith('.css')).map((file) => file.content).join('\n');
     const js = files.filter((file) => /\.(js|jsx|ts|tsx)$/.test(file.name.toLowerCase())).map((file) => file.content).join('\n;\n');
     let html = htmlFile?.content || '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SYNTAX Preview</title></head><body><main id="app"><h1>Beyond the Code.</h1><p>Create an index.html file to customize this preview.</p></main></body></html>';
-    const styleTag = css ? '<style>' + css.replace(/<\\/style/gi, '<\\\\/style') + '</style>' : '';
-    const scriptTag = js ? '<script>\\n' + js.replace(/<\\/script/gi, '<\\\\/script') + '\\n</script>' : '';
-    if (/<\\/head>/i.test(html)) html = html.replace(/<\\/head>/i, styleTag + '</head>');
+    const styleTag = css ? '<style>' + css.replace(/<\/style/gi, '<\\/style') + '</style>' : '';
+    const scriptTag = js ? '<script>\n' + js.replace(/<\/script/gi, '<\\/script') + '\n</script>' : '';
+    if (/<\/head>/i.test(html)) html = html.replace(/<\/head>/i, styleTag + '</head>');
     else html = styleTag + html;
-    if (/<\\/body>/i.test(html)) html = html.replace(/<\\/body>/i, scriptTag + '</body>');
+    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, scriptTag + '</body>');
     else html += scriptTag;
     return html;
   }, [files]);
