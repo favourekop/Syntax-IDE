@@ -171,7 +171,13 @@ export default function App() {
     function handleWorkspaceShortcuts(event) {
       const modifier = event.ctrlKey || event.metaKey;
       if (!modifier) return;
-      if (event.key.toLowerCase() === 'p') {
+      if (event.key === ',' ) {
+        event.preventDefault();
+        setActivePanel('Settings');
+      } else if (event.shiftKey && event.key.toLowerCase() === 'v') {
+        event.preventDefault();
+        setPreviewOpen((open) => !open);
+      } else if (event.key.toLowerCase() === 'p') {
         event.preventDefault();
         const target = window.prompt('Quick Open — enter an exact file name:\n' + files.map((file) => file.name).join('\n'), activeName);
         if (target && files.some((file) => file.name === target)) {
@@ -298,7 +304,7 @@ export default function App() {
       return;
     }
     const extension = name.split('.').pop();
-    const language = ({ js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', html: 'html', css: 'css', json: 'json' })[extension] ?? 'plaintext';
+    const language = ({ js: 'javascript', mjs: 'javascript', cjs: 'javascript', jsx: 'javascript', ts: 'typescript', mts: 'typescript', tsx: 'typescript', html: 'html', htm: 'html', css: 'css', scss: 'scss', json: 'json', md: 'markdown', mdx: 'markdown', py: 'python', php: 'php', sql: 'sql', java: 'java', c: 'c', h: 'c', cpp: 'cpp', hpp: 'cpp', cs: 'csharp', go: 'go', rs: 'rust', sh: 'shell', yml: 'yaml', yaml: 'yaml', xml: 'xml', svg: 'xml', toml: 'ini', env: 'dotenv' })[extension] ?? 'plaintext';
     setFiles((current) => [...current, { name, language, content: '' }]);
     setActiveName(name);
     setNotice(`Created local draft: ${name}`);
