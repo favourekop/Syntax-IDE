@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp, Cloud,
-  Command, FileCode2, Files, GitBranch, Play, Search, Settings2,
+  Command, Download, FileCode2, Files, GitBranch, Play, Search, Settings2,
   ShieldCheck, Terminal, WandSparkles, X,
 } from 'lucide-react';
 import MonacoCodeEditor from './MonacoCodeEditor.jsx';
@@ -75,6 +75,25 @@ export default function App() {
     else { setAuthUser(null); setNotice('Signed out.'); }
   }
 
+  function exportWorkspace() {
+    const payload = {
+      format: 'syntax-ide-workspace',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      files,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'syntax-ide-workspace.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setNotice('Workspace exported as a JSON backup.');
+  }
+
   function updateContent(value) {
     setSaveState('Saving…');
     setFiles((current) => current.map((file) => file.name === activeName ? { ...file, content: value } : file));
@@ -107,7 +126,7 @@ export default function App() {
       <header className="titlebar">
         <div className="brand"><div className="brand-mark"><Braces size={19} /></div><div><strong>SYNTAX</strong><span>BEYOND THE CODE</span></div></div>
         <div className="workspace-label"><span className="live-dot" /> Local workspace <ChevronDown size={14} /></div>
-        <div className="title-actions"><button title="Help" onClick={() => setNotice('SYNTAX IDE preview — cloud workspaces and authentication are the next milestones.')}><CircleHelp size={17} /></button><button title="Settings" onClick={() => setNotice('Settings panel is planned for the next build.')}><Settings2 size={17} /></button></div>
+        <div className="title-actions"><button title="Export workspace backup" onClick={exportWorkspace}><Download size={17} /></button><button title="Help" onClick={() => setNotice('SYNTAX IDE preview — cloud workspaces and authentication are the next milestones.')}><CircleHelp size={17} /></button><button title="Settings" onClick={() => setNotice('Settings panel is planned for the next build.')}><Settings2 size={17} /></button></div>
       </header>
       <div className="ide-body">
         <nav className="activitybar" aria-label="Workspace tools">
