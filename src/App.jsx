@@ -57,7 +57,7 @@ export default function App() {
     const js = files.filter((file) => /\.(js|jsx|ts|tsx)$/.test(file.name.toLowerCase())).map((file) => file.content).join('\n;\n');
     let html = htmlFile?.content || '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SYNTAX Preview</title></head><body><main id="app"><h1>Beyond the Code.</h1><p>Create an index.html file to customize this preview.</p></main></body></html>';
     const styleTag = css ? '<style>' + css.replaceAll('</style', '<\\/style') + '</style>' : '';
-    const scriptTag = js ? '<script>\\n' + js.replaceAll('</script', '<\\/script') + '\\n</script>' : '';
+    const scriptTag = js ? '<script>' + js.replaceAll('</script', '<\\/script') + '</script>' : '';
     const headClose = html.toLowerCase().indexOf('</head>');
     if (headClose >= 0) html = html.slice(0, headClose) + styleTag + html.slice(headClose);
     else html = styleTag + html;
