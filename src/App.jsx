@@ -46,7 +46,7 @@ export default function App() {
   const matchingFiles = files.filter((file) => !searchQuery.trim() || file.name.toLowerCase().includes(searchQuery.toLowerCase()) || file.content.toLowerCase().includes(searchQuery.toLowerCase()));
   const searchExcerpt = (content, query) => {
     if (!query.trim()) return '';
-    const line = content.split('\\n').find((item) => item.toLowerCase().includes(query.toLowerCase()));
+    const line = content.split('\n').find((item) => item.toLowerCase().includes(query.toLowerCase()));
     return line ? line.trim().slice(0, 90) : '';
   };
 
