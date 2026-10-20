@@ -71,6 +71,7 @@ export default function CloudProjectsPanel({ authUser, files, onLoad, onNotice }
       <button className="auth-button" type="submit" disabled={busy || !supabaseConfigured}><Save size={13} /> {busy ? 'Working…' : selectedId ? 'Update selected project' : 'Save as new project'}</button>
     </form>
     <button className="auth-button secondary" type="button" onClick={refresh} disabled={busy || !supabaseConfigured}><RefreshCw size={13} /> Refresh projects</button>
+    <button className="auth-button secondary" type="button" onClick={() => { setSelectedId(''); setName('New SYNTAX Project'); }} disabled={busy}>Start a new project</button>
     <label>Saved projects<select value={selectedId} onChange={(event) => { setSelectedId(event.target.value); const project = projects.find((item) => item.id === event.target.value); if (project) setName(project.name); }}><option value="">Select a project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
     <button className="auth-button secondary" type="button" onClick={load} disabled={busy || !selectedId}><Download size={13} /> Load selected project</button>
   </div>;
