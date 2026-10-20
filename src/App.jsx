@@ -23,6 +23,63 @@ const iconActions = [
   { name: 'Cloud Projects', icon: Cloud },
 ];
 
+function buildPreviewDocument(files) {
+  const normalize = (value) => {
+    const parts = [];
+    for (const part of value.replace(/\\\\/g, '/').split('/')) {
+      if (!part || part === '.') continue;
+      if (part === '..') parts.pop();
+      else parts.push(part);
+    }
+    return parts.join('/');
+  };
+  const fileMap = new Map(files.map((file) => [normalize(file.name), file]));
+  const htmlFile = files.find((file) => file.name.split('/').pop().toLowerCase() === 'index.html');
+  let html = htmlFile?.content || '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SYNTAX Preview</title></head><body><main id="app"><h1>Beyond the Code.</h1><p>Create an index.html file to customize this preview.</p></main></body></html>';
+  const htmlDirectory = htmlFile?.name.includes('/') ? htmlFile.name.slice(0, htmlFile.name.lastIndexOf('/')) : '';
+  const findAsset = (assetPath) => {
+    if (!assetPath || /^(?:[a-z]+:|\\/\\/|#|data:)/i.test(assetPath)) return null;
+    const cleanPath = decodeURIComponent(assetPath.split(/[?#]/)[0]);
+    const candidates = [normalize(htmlDirectory ? htmlDirectory + '/' + cleanPath : cleanPath), normalize(cleanPath.replace(/^\\//, ''))];
+    return candidates.map((candidate) => fileMap.get(candidate)).find(Boolean) ?? null;
+  };
+  let linkedScriptCount = 0;
+  let linkedStyleCount = 0;
+  html = html.replace(/<script\\b([^>]*?)\\bsrc=(["'])(.*?)\\2([^>]*)>\\s*(?:<\\/script\\s*>)?/gi, (tag, before, quote, src, after) => {
+    const asset = findAsset(src);
+    if (!asset || !/\\.(?:m?js|cjs)$/i.test(asset.name)) return tag;
+    linkedScriptCount += 1;
+    const attributes = (before + ' ' + after).replace(/\\s+src=(["']).*?\\1/i, '').trim();
+    return '<script' + (attributes ? ' ' + attributes : '') + '>' + asset.content.replace(/<\\/script/gi, '<\\\\/script') + '</script>';
+  });
+  html = html.replace(/<link\\b([^>]*?)\\bhref=(["'])(.*?)\\2([^>]*)>/gi, (tag, before, quote, href, after) => {
+    const asset = findAsset(href);
+    if (!asset || !/\\.css$/i.test(asset.name) || !/stylesheet/i.test(before + ' ' + after)) return tag;
+    linkedStyleCount += 1;
+    return '<style>' + asset.content.replace(/<\\/style/gi, '<\\\\/style') + '</style>';
+  });
+  const fallbackCss = files.filter((file) => file.name.toLowerCase().endsWith('.css')).map((file) => file.content).join('\\n');
+  const hasInlineStyles = /<style\\b/i.test(html);
+  const styleTag = fallbackCss && linkedStyleCount === 0 && !hasInlineStyles
+    ? '<style>' + fallbackCss.replace(/<\\/style/gi, '<\\\\/style') + '</style>'
+    : '';
+  if (styleTag) {
+    const headClose = html.toLowerCase().indexOf('</head>');
+    html = headClose >= 0 ? html.slice(0, headClose) + styleTag + html.slice(headClose) : styleTag + html;
+  }
+  const hasScript = /<script\\b/i.test(html);
+  if (!hasScript && linkedScriptCount === 0) {
+    const entry = ['src/main.js', 'main.js', 'src/index.js', 'index.js', 'app.js']
+      .map((name) => fileMap.get(name)).find(Boolean);
+    if (entry) {
+      const scriptTag = '<script>' + entry.content.replace(/<\\/script/gi, '<\\\\/script') + '</script>';
+      const bodyClose = html.toLowerCase().indexOf('</body>');
+      html = bodyClose >= 0 ? html.slice(0, bodyClose) + scriptTag + html.slice(bodyClose) : html + scriptTag;
+    }
+  }
+  return html;
+}
+
 export default function App() {
   const [files, setFiles] = useState(() => { try { const saved = window.localStorage.getItem('syntax-ide-local-files-v1'); return saved ? JSON.parse(saved) : initialFiles; } catch { return initialFiles; } });
   const [activeName, setActiveName] = useState('main.js');
@@ -52,21 +109,7 @@ export default function App() {
     });
     return [...groups.entries()];
   }, [files]);
-  const previewDocument = useMemo(() => {
-    const htmlFile = files.find((file) => file.name.split('/').pop().toLowerCase() === 'index.html');
-    const css = files.filter((file) => file.name.toLowerCase().endsWith('.css')).map((file) => file.content).join('\n');
-    const js = files.filter((file) => file.name.toLowerCase().endsWith('.js')).map((file) => file.content).join('\n;\n');
-    let html = htmlFile?.content || '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SYNTAX Preview</title></head><body><main id="app"><h1>Beyond the Code.</h1><p>Create an index.html file to customize this preview.</p></main></body></html>';
-    const styleTag = css ? '<style>' + css.replaceAll('</style', '<\\/style') + '</style>' : '';
-    const scriptTag = js ? '<script>' + js.replaceAll('</script', '<\\/script') + '</script>' : '';
-    const headClose = html.toLowerCase().indexOf('</head>');
-    if (headClose >= 0) html = html.slice(0, headClose) + styleTag + html.slice(headClose);
-    else html = styleTag + html;
-    const bodyClose = html.toLowerCase().indexOf('</body>');
-    if (bodyClose >= 0) html = html.slice(0, bodyClose) + scriptTag + html.slice(bodyClose);
-    else html += scriptTag;
-    return html;
-  }, [files]);
+  const previewDocument = useMemo(() => buildPreviewDocument(files), [files]);
   const languageNames = useMemo(() => ({ javascript: 'JavaScript', html: 'HTML', css: 'CSS', typescript: 'TypeScript', json: 'JSON' }), []);
 
   useEffect(() => { try { window.localStorage.setItem('syntax-ide-local-files-v1', JSON.stringify(files)); setSaveState('Saved locally'); } catch { setSaveState('Local save unavailable'); } }, [files]);
