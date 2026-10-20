@@ -30,3 +30,6 @@ button{color:inherit;cursor:pointer}
 .sidebar-tools{display:flex;align-items:center;gap:2px}.sidebar-tools button{min-width:24px;min-height:25px}
 
 .search-hint{margin:0;padding:0 2px;color:#718d7b;font-size:10px;line-height:1.5}.search-result{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;padding:8px;border:1px solid transparent;border-radius:5px;background:transparent;color:#9ab3a2;text-align:left}.search-result:hover{border-color:#234631;background:#102319;color:#e0f4e7}.search-result-title{display:flex;align-items:center;gap:7px;font-size:11px}.search-result-title svg{flex-shrink:0;color:#43d88c}.search-result code{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#718f7b;font:10px/1.5 'DM Mono',monospace}
+
+
+.folder-row{display:flex;align-items:center;gap:7px;padding:7px 10px 5px;color:#7fa88d;font-size:10px;line-height:1.4;overflow-wrap:anywhere}.folder-row svg{flex-shrink:0;color:#35b875}.file-group+.file-group{margin-top:5px}.file-row{padding-left:18px}.preview-area{background:#f7f9f8;padding:0}.preview-area iframe{display:block;width:100%;height:100%;border:0;background:#fff;color:#111}
