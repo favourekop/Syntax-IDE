@@ -16,7 +16,8 @@
     "react-dom": "latest",
     "lucide-react": "latest",
     "monaco-editor": "latest",
-    "@monaco-editor/react": "latest"
+    "@monaco-editor/react": "latest",
+    "@supabase/supabase-js": "^2.57.0"
   },
   "devDependencies": {}
 }
