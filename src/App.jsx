@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp, Cloud,
-  Command, Download, FileCode2, Files, GitBranch, Play, Search, Settings2,
+  Command, Download, FileCode2, Files, GitBranch, Play, Search, Settings2, Upload,
   ShieldCheck, Terminal, WandSparkles, X,
 } from 'lucide-react';
 import MonacoCodeEditor from './MonacoCodeEditor.jsx';
@@ -38,6 +38,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState('signin');
   const [authBusy, setAuthBusy] = useState(false);
   const [authUser, setAuthUser] = useState(null);
+  const importInputRef = useRef(null);
   const activeFile = files.find((file) => file.name === activeName) ?? files[0];
   const languageNames = useMemo(() => ({ javascript: 'JavaScript', html: 'HTML', css: 'CSS', typescript: 'TypeScript', json: 'JSON' }), []);
 
@@ -94,6 +95,49 @@ export default function App() {
     setNotice('Workspace exported as a JSON backup.');
   }
 
+  async function importWorkspace(event) {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) return;
+
+    try {
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        throw new Error('Backup is too large. Choose a JSON file under 5 MB.');
+      }
+
+      const payload = JSON.parse(await selectedFile.text());
+      if (payload?.format !== 'syntax-ide-workspace' || payload?.version !== 1 || !Array.isArray(payload.files)) {
+        throw new Error('This file is not a supported SYNTAX IDE workspace backup.');
+      }
+      if (payload.files.length < 1 || payload.files.length > 500) {
+        throw new Error('A workspace backup must contain between 1 and 500 files.');
+      }
+
+      const seenNames = new Set();
+      const restoredFiles = payload.files.map((file) => {
+        if (!file || typeof file.name !== 'string' || !/^[\w.-]{1,180}$/.test(file.name) || file.name === '.' || file.name === '..') {
+          throw new Error('The backup contains an invalid file name.');
+        }
+        if (seenNames.has(file.name)) throw new Error('The backup contains duplicate file names.');
+        seenNames.add(file.name);
+        if (typeof file.content !== 'string' || file.content.length > 1024 * 1024) {
+          throw new Error('A file is invalid or exceeds the 1 MB per-file limit.');
+        }
+        const language = typeof file.language === 'string' && file.language.length <= 40 ? file.language : 'plaintext';
+        return { name: file.name, language, content: file.content };
+      });
+
+      if (!window.confirm(`Import ${restoredFiles.length} file(s)? This will replace the files currently in your local workspace.`)) return;
+      setFiles(restoredFiles);
+      setActiveName(restoredFiles[0].name);
+      setActivePanel('Explorer');
+      setNotice(`Workspace restored: ${restoredFiles.length} file(s) imported.`);
+    } catch (error) {
+      setNotice(error?.message || 'Could not import this workspace backup.');
+    } finally {
+      event.target.value = '';
+    }
+  }
+
   function updateContent(value) {
     setSaveState('Saving…');
     setFiles((current) => current.map((file) => file.name === activeName ? { ...file, content: value } : file));
@@ -126,7 +170,7 @@ export default function App() {
       <header className="titlebar">
         <div className="brand"><div className="brand-mark"><Braces size={19} /></div><div><strong>SYNTAX</strong><span>BEYOND THE CODE</span></div></div>
         <div className="workspace-label"><span className="live-dot" /> Local workspace <ChevronDown size={14} /></div>
-        <div className="title-actions"><button title="Export workspace backup" onClick={exportWorkspace}><Download size={17} /></button><button title="Help" onClick={() => setNotice('SYNTAX IDE preview — cloud workspaces and authentication are the next milestones.')}><CircleHelp size={17} /></button><button title="Settings" onClick={() => setNotice('Settings panel is planned for the next build.')}><Settings2 size={17} /></button></div>
+        <div className="title-actions"><button title="Import workspace backup" onClick={() => importInputRef.current?.click()}><Upload size={17} /></button><input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={importWorkspace} /><button title="Export workspace backup" onClick={exportWorkspace}><Download size={17} /></button><button title="Help" onClick={() => setNotice('SYNTAX IDE preview — cloud workspaces and authentication are the next milestones.')}><CircleHelp size={17} /></button><button title="Settings" onClick={() => setNotice('Settings panel is planned for the next build.')}><Settings2 size={17} /></button></div>
       </header>
       <div className="ide-body">
         <nav className="activitybar" aria-label="Workspace tools">
