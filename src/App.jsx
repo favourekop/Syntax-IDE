@@ -157,6 +157,34 @@ export default function App() {
     setNotice(`Created local draft: ${name}`);
   }
 
+  function renameActiveFile() {
+    if (!activeFile) return;
+    const nextName = window.prompt('Rename file:', activeFile.name);
+    if (!nextName || nextName === activeFile.name) return;
+    if (!/^[\w.-]{1,180}$/.test(nextName) || nextName === '.' || nextName === '..' || files.some((file) => file.name === nextName)) {
+      setNotice('Choose a unique file name using letters, numbers, dots, dashes or underscores.');
+      return;
+    }
+    const extension = nextName.split('.').pop().toLowerCase();
+    const language = ({ js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript', html: 'html', css: 'css', json: 'json', md: 'markdown', py: 'python', php: 'php', sql: 'sql', java: 'java', c: 'c', cpp: 'cpp', cs: 'csharp', go: 'go', rs: 'rust' })[extension] ?? activeFile.language;
+    setFiles((current) => current.map((file) => file.name === activeFile.name ? { ...file, name: nextName, language } : file));
+    setActiveName(nextName);
+    setNotice(`Renamed file to ${nextName}.`);
+  }
+
+  function deleteActiveFile() {
+    if (!activeFile) return;
+    if (files.length === 1) {
+      setNotice('Keep at least one file in the workspace. Create another file before deleting this one.');
+      return;
+    }
+    if (!window.confirm(`Delete ${activeFile.name} from this local workspace? This cannot be undone.`)) return;
+    const remaining = files.filter((file) => file.name !== activeFile.name);
+    setFiles(remaining);
+    setActiveName(remaining[0].name);
+    setNotice(`Deleted ${activeFile.name} from the local workspace.`);
+  }
+
   function runCommand(event) {
     event.preventDefault();
     if (!command.trim()) return;
@@ -180,7 +208,7 @@ export default function App() {
           <button title="Account" onClick={() => setActivePanel('Account')}><Settings2 size={19} /></button>
         </nav>
         <aside className="sidebar">
-          <div className="sidebar-heading"><span>{activePanel.toUpperCase()}</span><button onClick={createFile} title="New file"><span className="plus">+</span></button></div>
+          <div className="sidebar-heading"><span>{activePanel.toUpperCase()}</span><div className="sidebar-tools">{activePanel === 'Explorer' && <><button onClick={renameActiveFile} title="Rename active file"><Pencil size={14} /></button><button onClick={deleteActiveFile} title="Delete active file"><Trash2 size={14} /></button></>}<button onClick={createFile} title="New file"><span className="plus">+</span></button></div></div>
           {activePanel === 'Cloud Projects' ? <CloudProjectsPanel authUser={authUser} files={files} onLoad={(project, loadedFiles) => { setFiles(loadedFiles); setActiveName(loadedFiles[0]?.name ?? 'main.js'); setNotice('Loaded cloud project: ' + project.name); setActivePanel('Explorer'); }} onNotice={setNotice} /> : activePanel === 'Explorer' ? <>
             <div className="tree-heading"><ChevronDown size={14} /><span>SYNTAX-WORKSPACE</span><button onClick={createFile} title="New file">+</button></div>
             <div className="file-list">{files.map((file) => <button key={file.name} className={activeName === file.name ? 'file-row selected' : 'file-row'} onClick={() => setActiveName(file.name)}><FileCode2 size={15} /><span>{file.name}</span></button>)}</div>
