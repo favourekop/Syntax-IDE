@@ -26,3 +26,5 @@ button{color:inherit;cursor:pointer}
 
 
 .cloud-project-panel{padding:12px 10px;display:flex;flex-direction:column;align-items:stretch;gap:11px;overflow:auto;color:#a5bdad;font-size:11px}.cloud-project-panel>svg{color:#43d88c}.cloud-project-panel>strong{font-size:13px;color:#dcefe2}.cloud-project-panel p{margin:0;line-height:1.6;overflow-wrap:anywhere}.cloud-project-panel form{display:flex;flex-direction:column;gap:10px}.cloud-project-panel label{display:flex;flex-direction:column;gap:5px;color:#91ad9b}.cloud-project-panel input,.cloud-project-panel select{width:100%;min-width:0;padding:8px;border:1px solid #294734;border-radius:5px;outline:0;background:#07110d;color:#e4eee8;font-size:11px}.cloud-project-panel input:focus,.cloud-project-panel select:focus{border-color:#35d07f}.cloud-project-panel .auth-button{display:flex;align-items:center;justify-content:center;gap:6px;line-height:1.4}.cloud-project-panel .auth-button.secondary{align-self:stretch}
+
+.sidebar-tools{display:flex;align-items:center;gap:2px}.sidebar-tools button{min-width:24px;min-height:25px}
