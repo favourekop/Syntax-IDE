@@ -126,7 +126,7 @@ export default function App() {
       if (event.source !== previewFrameRef.current?.contentWindow) return;
       if (event.data?.source !== 'syntax-preview' || typeof event.data.text !== 'string') return;
       const level = ['error', 'warn'].includes(event.data.kind) ? event.data.kind.toUpperCase() : 'LOG';
-      setTerminalText((current) => current + '\\n[preview ' + level + '] ' + event.data.text.slice(0, 1200) + '\\n');
+      setTerminalText((current) => current + '\n[preview ' + level + '] ' + event.data.text.slice(0, 1200) + '\n');
       if (event.data.kind === 'error') setTerminalOpen(true);
     }
     window.addEventListener('message', handlePreviewMessage);
