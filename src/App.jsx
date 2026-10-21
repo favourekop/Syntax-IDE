@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp, Cloud,
+  Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp, Cloud, FolderPlus,
   Command, Download, FileCode2, Files, Folder, GitBranch, Pencil, Play, Search, Settings2, Trash2, Upload, Eye, Code2,
   ShieldCheck, Terminal, WandSparkles, X,
 } from 'lucide-react';
@@ -310,6 +310,65 @@ export default function App() {
     setNotice(`Created local draft: ${name}`);
   }
 
+  function createProjectTemplate() {
+    const choice = window.prompt(
+      'Create a project template — enter a number:\\n1. HTML, CSS & JavaScript\\n2. React + Vite starter\\n3. Node.js API starter\\n4. Python script starter',
+      '1',
+    );
+    if (!choice) return;
+
+    const templates = {
+      '1': {
+        name: 'Web Starter',
+        files: [
+          { name: 'index.html', language: 'html', content: '<!doctype html>\\n<html lang="en">\\n  <head>\\n    <meta charset="UTF-8" />\\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\\n    <title>My Web Project</title>\\n    <link rel="stylesheet" href="styles.css" />\\n  </head>\\n  <body>\\n    <main class="container">\\n      <p class="eyebrow">BUILT WITH SYNTAX</p>\\n      <h1>Beyond the Code.</h1>\\n      <p>Your next idea starts here.</p>\\n      <button id="start-button">Get started</button>\\n    </main>\\n    <script src="main.js"></script>\\n  </body>\\n</html>\\n' },
+          { name: 'styles.css', language: 'css', content: ':root { font-family: Inter, system-ui, sans-serif; color: #e8f4ec; background: #07110d; }\\nbody { min-height: 100vh; margin: 0; display: grid; place-items: center; }\\n.container { max-width: 640px; padding: 3rem; }\\n.eyebrow { color: #45d88b; font-size: .75rem; letter-spacing: .18em; }\\nh1 { font-size: clamp(2.5rem, 8vw, 5rem); margin: .5rem 0; }\\np { color: #a6bcad; line-height: 1.7; }\\nbutton { padding: .8rem 1rem; border: 0; border-radius: .5rem; background: #35d07f; color: #07110d; font-weight: 700; cursor: pointer; }\\n' },
+          { name: 'main.js', language: 'javascript', content: "document.querySelector('#start-button').addEventListener('click', () => {\\n  document.querySelector('h1').textContent = 'You are ready to build.';\\n  console.log('Welcome to your new SYNTAX project!');\\n});\\n" },
+          { name: 'README.md', language: 'markdown', content: '# My Web Project\\n\\nA starter website created in SYNTAX IDE.\\n\\n## Files\\n- `index.html`: page structure\\n- `styles.css`: visual styles\\n- `main.js`: browser interactions\\n\\nOpen Preview in SYNTAX to view the website.\\n' },
+        ],
+      },
+      '2': {
+        name: 'React + Vite Starter',
+        files: [
+          { name: 'package.json', language: 'json', content: '{\\n  "name": "syntax-react-starter",\\n  "private": true,\\n  "version": "0.1.0",\\n  "type": "module",\\n  "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },\\n  "dependencies": { "react": "latest", "react-dom": "latest" },\\n  "devDependencies": { "@vitejs/plugin-react": "latest", "vite": "latest" }\\n}\\n' },
+          { name: 'index.html', language: 'html', content: '<!doctype html>\\n<html lang="en">\\n  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>React Starter</title></head>\\n  <body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body>\\n</html>\\n' },
+          { name: 'vite.config.js', language: 'javascript', content: "import { defineConfig } from 'vite';\\nimport react from '@vitejs/plugin-react';\\n\\nexport default defineConfig({ plugins: [react()] });\\n" },
+          { name: 'src/main.jsx', language: 'javascript', content: "import React from 'react';\\nimport { createRoot } from 'react-dom/client';\\nimport App from './App.jsx';\\nimport './styles.css';\\n\\ncreateRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>);\\n" },
+          { name: 'src/App.jsx', language: 'javascript', content: "export default function App() {\\n  return (\\n    <main className=\"app\">\\n      <p className=\"eyebrow\">BUILT WITH SYNTAX</p>\\n      <h1>Beyond the Code.</h1>\\n      <p>Your React project is ready for your ideas.</p>\\n      <button onClick={() => alert('Let us build something great!')}>Get started</button>\\n    </main>\\n  );\\n}\\n" },
+          { name: 'src/styles.css', language: 'css', content: "body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #07110d; color: #e8f4ec; }\\n.app { min-height: 100vh; display: grid; align-content: center; justify-items: start; padding: 2rem clamp(1.5rem, 8vw, 8rem); box-sizing: border-box; }\\n.eyebrow { color: #45d88b; letter-spacing: .18em; font-size: .75rem; }\\nh1 { font-size: clamp(2.5rem, 8vw, 5rem); margin: .5rem 0; }\\np { color: #a6bcad; line-height: 1.7; }\\nbutton { padding: .8rem 1rem; border: 0; border-radius: .5rem; background: #35d07f; color: #07110d; font-weight: 700; cursor: pointer; }\\n" },
+          { name: 'README.md', language: 'markdown', content: '# React + Vite Starter\\n\\nInstall dependencies with `npm install`, then run `npm run dev`.\\n\\nNote: SYNTAX browser preview does not bundle JSX yet; run this starter through a Vite runtime when connected.\\n' },
+        ],
+      },
+      '3': {
+        name: 'Node API Starter',
+        files: [
+          { name: 'package.json', language: 'json', content: '{\\n  "name": "syntax-node-api",\\n  "private": true,\\n  "type": "module",\\n  "scripts": { "start": "node src/server.js", "dev": "node --watch src/server.js" },\\n  "engines": { "node": ">=20" }\\n}\\n' },
+          { name: 'src/server.js', language: 'javascript', content: "import { createServer } from 'node:http';\\n\\nconst server = createServer((request, response) => {\\n  response.setHeader('content-type', 'application/json; charset=utf-8');\\n  if (request.url === '/health') {\\n    response.writeHead(200);\\n    response.end(JSON.stringify({ status: 'ok', service: 'syntax-api' }));\\n    return;\\n  }\\n  response.writeHead(404);\\n  response.end(JSON.stringify({ error: 'Not found' }));\\n});\\n\\nconst port = Number(process.env.PORT || 3000);\\nserver.listen(port, '0.0.0.0', () => console.log('API listening on ' + port));\\n" },
+          { name: '.env.example', language: 'dotenv', content: 'PORT=3000\\n' },
+          { name: 'README.md', language: 'markdown', content: '# Node API Starter\\n\\nA minimal Node.js HTTP API with a health route.\\n\\n## Run\\n```sh\\nnpm install\\nnpm run dev\\n```\\n\\nTry `GET /health`. A connected isolated runtime is required to execute this API from SYNTAX.\\n' },
+        ],
+      },
+      '4': {
+        name: 'Python Starter',
+        files: [
+          { name: 'main.py', language: 'python', content: 'def main():\\n    message = "Beyond the Code."\\n    print(message)\\n\\n\\nif __name__ == "__main__":\\n    main()\\n' },
+          { name: 'README.md', language: 'markdown', content: '# Python Starter\\n\\nA clean starting point for a Python project.\\n\\nRun with `python main.py` in a Python environment. SYNTAX shell execution is not connected yet.\\n' },
+        ],
+      },
+    };
+    const template = templates[choice];
+    if (!template) {
+      setNotice('Choose 1, 2, 3 or 4 to select a project template.');
+      return;
+    }
+    if (!window.confirm('Create ' + template.name + '? This replaces the files in your current local workspace. Export a backup first if you need these files.')) return;
+    setFiles(template.files);
+    setActiveName(template.files[0].name);
+    setActivePanel('Explorer');
+    setPreviewOpen(false);
+    setNotice(template.name + ' created with ' + template.files.length + ' starter files.');
+  }
+
   function renameActiveFile() {
     if (!activeFile) return;
     const nextName = window.prompt('Rename file:', activeFile.name);
@@ -351,7 +410,7 @@ export default function App() {
       <header className="titlebar">
         <div className="brand"><div className="brand-mark"><Braces size={19} /></div><div><strong>SYNTAX</strong><span>BEYOND THE CODE</span></div></div>
         <div className="workspace-label"><span className="live-dot" /> Local workspace <ChevronDown size={14} /></div>
-        <div className="title-actions"><button title="Import workspace backup" onClick={() => importInputRef.current?.click()}><Upload size={17} /></button><input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={importWorkspace} /><button title="Export workspace backup" onClick={exportWorkspace}><Download size={17} /></button><button title="Help" onClick={() => setNotice('SYNTAX IDE preview — cloud workspaces and authentication are the next milestones.')}><CircleHelp size={17} /></button><button title="Settings" onClick={() => setActivePanel('Settings')}><Settings2 size={17} /></button></div>
+        <div className="title-actions"><button title="New project from template" onClick={createProjectTemplate}><FolderPlus size={17} /></button><button title="Import workspace backup" onClick={() => importInputRef.current?.click()}><Upload size={17} /></button><input ref={importInputRef} type="file" accept="application/json,.json" hidden onChange={importWorkspace} /><button title="Export workspace backup" onClick={exportWorkspace}><Download size={17} /></button><button title="Help" onClick={() => setNotice('SYNTAX IDE preview — cloud workspaces and authentication are the next milestones.')}><CircleHelp size={17} /></button><button title="Settings" onClick={() => setActivePanel('Settings')}><Settings2 size={17} /></button></div>
       </header>
       <div className="ide-body">
         <nav className="activitybar" aria-label="Workspace tools">
