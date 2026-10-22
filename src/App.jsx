@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp, Cloud, FolderPlus,
+  Activity, Blocks, Braces, ChevronDown, ChevronRight, CircleHelp, Cloud, FolderPlus, Globe2,
   Command, Download, FileCode2, Files, Folder, GitBranch, Pencil, Play, Search, Settings2, Trash2, Upload, Eye, Code2,
   ShieldCheck, Terminal, WandSparkles, X,
 } from 'lucide-react';
@@ -92,6 +92,8 @@ export default function App() {
   const [activePanel, setActivePanel] = useState('Explorer');
   const [terminalOpen, setTerminalOpen] = useState(true);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('1');
   const [collapsedFolders, setCollapsedFolders] = useState({});
   const [terminalText, setTerminalText] = useState('SYNTAX IDE terminal\nWorkspace shell is not connected yet.\n');
   const [command, setCommand] = useState('');
@@ -310,12 +312,11 @@ export default function App() {
     setNotice(`Created local draft: ${name}`);
   }
 
-  function createProjectTemplate() {
-    const choice = window.prompt(
-      'Create a project template — enter a number:\n1. HTML, CSS & JavaScript\n2. React + Vite starter\n3. Node.js API starter\n4. Python script starter',
-      '1',
-    );
-    if (!choice) return;
+  function createProjectTemplate(choice) {
+    if (!choice) {
+      setTemplatePickerOpen(true);
+      return;
+    }
 
     const templates = {
       '1': {
@@ -364,6 +365,7 @@ export default function App() {
     if (!window.confirm('Create ' + template.name + '? This replaces the files in your current local workspace. Export a backup first if you need these files.')) return;
     setFiles(template.files);
     setActiveName(template.files[0].name);
+    setTemplatePickerOpen(false);
     setActivePanel('Explorer');
     setPreviewOpen(false);
     setNotice(template.name + ' created with ' + template.files.length + ' starter files.');
@@ -435,6 +437,27 @@ export default function App() {
           <footer className="statusbar"><span><GitBranch size={13} /> workspace*</span><span>UTF-8</span><span>{languageNames[activeFile.language] ?? activeFile.language}</span><span className="status-spacer" /><span><ShieldCheck size={13} /> {saveState}</span><span><Command size={13} /> SYNTAX</span></footer>
         </section>
       </div>
+      {templatePickerOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setTemplatePickerOpen(false); }}>
+        <section className="template-modal" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
+          <div className="template-modal-heading">
+            <div><span className="template-eyebrow">NEW WORKSPACE</span><h2 id="template-modal-title">Start something great.</h2><p>Choose a starter. You can customize every file after creation.</p></div>
+            <button className="template-close" onClick={() => setTemplatePickerOpen(false)} aria-label="Close template picker"><X size={18} /></button>
+          </div>
+          <div className="template-options">
+            {[
+              { id: '1', icon: Globe2, title: 'Web starter', detail: 'HTML, CSS and JavaScript', meta: '4 files' },
+              { id: '2', icon: Blocks, title: 'React + Vite', detail: 'Components, entry point and styles', meta: '6 files' },
+              { id: '3', icon: Cloud, title: 'Node.js API', detail: 'HTTP server and health endpoint', meta: '4 files' },
+              { id: '4', icon: Terminal, title: 'Python', detail: 'Python entry point and README', meta: '2 files' },
+            ].map(({ id, icon: TemplateIcon, title, detail, meta }) => <button key={id} className={selectedTemplate === id ? 'template-option selected' : 'template-option'} onClick={() => setSelectedTemplate(id)} aria-pressed={selectedTemplate === id}>
+              <span className="template-option-icon"><TemplateIcon size={19} /></span>
+              <span className="template-option-copy"><strong>{title}</strong><small>{detail}</small></span>
+              <span className="template-option-meta">{meta}</span>
+            </button>)}
+          </div>
+          <div className="template-modal-footer"><span><ShieldCheck size={14} /> Your current workspace stays safe until you confirm.</span><div><button className="template-cancel" onClick={() => setTemplatePickerOpen(false)}>Cancel</button><button className="template-create" onClick={() => createProjectTemplate(selectedTemplate)}>Create project <ChevronRight size={15} /></button></div></div>
+        </section>
+      </div>}
       {notice && <div className="toast" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss notification"><X size={14} /></button></div>}
     </main>
   );
