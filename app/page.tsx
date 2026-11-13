@@ -62,7 +62,7 @@ export default function Home() {
   function createFile() {
     const requested = window.prompt("New file path (example: src/app.tsx)");
     if (!requested) return;
-    const name = requested.trim().replace(/\\\\/g, "/");
+    const name = requested.trim().replaceAll("\\", "/");
     if (!name || name.startsWith("/") || name.split("/").some((part) => !part || part === "." || part === ".." || part.startsWith("."))) {
       setMessage("Use a project-relative file path without hidden or parent folders.");
       return;
