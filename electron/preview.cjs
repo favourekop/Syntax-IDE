@@ -1,5 +1,6 @@
 const { spawn } = require("node:child_process");
 const http = require("node:http");
+const fs = require("node:fs/promises");
 
 let previewProcess = null;
 let previewWindow = null;
@@ -46,12 +47,23 @@ function waitForPreview(child, timeout = 90000) {
   });
 }
 
+async function detectPreviewCommand(root) {
+  try {
+    const pkg = JSON.parse(await fs.readFile(require("node:path").join(root, "package.json"), "utf8"));
+    const all = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+    if (all.next) return "npm run dev -- --hostname 127.0.0.1";
+    if (all.vite) return "npm run dev -- --host 127.0.0.1";
+    if (all["@angular/cli"]) return "npm start -- --host 127.0.0.1";
+  } catch {}
+  return "npm run dev";
+}
+
 function attachPreview(ipcMain, getWindow, getProjectRoot) {
   ipcMain.handle("syntax:start-preview", async (_event, command) => {
     const root = getProjectRoot();
     if (!root) return { ok: false, error: "Open a project folder before starting a local preview." };
     if (previewProcess) return { ok: false, error: "A preview process is already running.", url: activeUrl };
-    const input = String(command || "npm run dev -- --host 127.0.0.1").trim();
+    const input = String(command || await detectPreviewCommand(root)).trim();
     if (!input || input.length > 2000) return { ok: false, error: "Enter a valid preview command." };
     const win = getWindow();
     const isWindows = process.platform === "win32";
