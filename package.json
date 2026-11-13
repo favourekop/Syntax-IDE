@@ -27,7 +27,11 @@
     "concurrently": "^9.2.0",
     "electron": "^38.0.0",
     "electron-builder": "^26.0.12",
-    "wait-on": "^8.0.4"
+    "wait-on": "^8.0.4",
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.7",
+    "typescript": "^5.9.2"
   },
   "build": {
     "appId": "org.ekopdesignzhub.syntaxide",
