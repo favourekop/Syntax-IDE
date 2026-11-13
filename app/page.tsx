@@ -21,7 +21,7 @@ export default function Home() {
   const [explorerOpen, setExplorerOpen] = useState(true);
   const [message, setMessage] = useState("Welcome to SYNTAX IDE. Your desktop workspace is ready.");
   const [projectPath, setProjectPath] = useState("No folder opened");
-  const [terminalOutput, setTerminalOutput] = useState("SYNTAX IDE local terminal\\nOpen a project folder, then enter a command below.\\n");
+  const [terminalOutput, setTerminalOutput] = useState("SYNTAX IDE local terminal\nOpen a project folder, then enter a command below.\n");
   const [terminalCommand, setTerminalCommand] = useState("");
   const [running, setRunning] = useState(false);
   const current = files.find((file) => file.name === active) ?? files[0];
@@ -38,23 +38,23 @@ export default function Home() {
     event?.preventDefault();
     const command = terminalCommand.trim();
     if (!command) return;
-    setTerminalOutput((value) => value + `\\n$ ${command}\\n`);
+    setTerminalOutput((value) => value + `\n$ ${command}\n`);
     setTerminalCommand("");
     setRunning(true);
     const result = await window.syntaxDesktop?.runCommand(command);
-    if (!result?.ok) { setTerminalOutput((value) => value + (result?.error ?? "Desktop runtime is unavailable.") + "\\n"); setRunning(false); }
+    if (!result?.ok) { setTerminalOutput((value) => value + (result?.error ?? "Desktop runtime is unavailable.") + "\n"); setRunning(false); }
   }
 
   async function stopCommand() {
     const result = await window.syntaxDesktop?.stopCommand();
-    if (!result?.ok) setTerminalOutput((value) => value + (result?.error ?? "Unable to stop process.") + "\\n");
+    if (!result?.ok) setTerminalOutput((value) => value + (result?.error ?? "Unable to stop process.") + "\n");
   }
   const previewDoc = useMemo(() => {
     const html = files.find((file) => file.name === "index.html")?.value ?? "<h1>Start building</h1>";
     const css = files.find((file) => file.name === "styles.css")?.value ?? "";
     const js = files.find((file) => file.name === "main.js")?.value ?? "";
-    return html.replace("</head>", `<style>${css.replace(/<\\/style/gi, "")}</style></head>`)
-      .replace("</body>", `<script>${js.replace(/<\\/script/gi, "")}</script></body>`);
+    return html.replace("</head>", `<style>${css.replace(/<\/style/gi, "")}</style></head>`)
+      .replace("</body>", `<script>${js.replace(/<\/script/gi, "")}</script></body>`);
   }, [files]);
 
   const updateCode = (value?: string) => setFiles((all) => all.map((file) => file.name === active ? { ...file, value: value ?? "" } : file));
