@@ -69,3 +69,33 @@ button{color:inherit;cursor:pointer}
 .template-create{border:1px solid #45d88b;background:#35d07f;color:#06120b;font-weight:800}
 .template-create:hover{background:#6ae5a0}
 @media(max-width:520px){.modal-backdrop{padding:10px}.template-modal-heading{padding:19px 16px 15px}.template-options{grid-template-columns:1fr;padding:14px 16px}.template-option{padding:11px}.template-modal-footer{align-items:flex-start;flex-direction:column;padding:14px 16px 17px}.template-modal-footer>div{width:100%;justify-content:flex-end}.template-option-meta{font-size:8px}}
+
+
+/* Mobile workspace polish */
+@media (max-width: 520px) {
+  .titlebar { gap: 6px; padding-inline: 7px; }
+  .brand { gap: 6px; }
+  .brand-mark { width: 29px; height: 29px; }
+  .brand strong { font-size: 10px; letter-spacing: 1.5px; }
+  .workspace-label { min-width: 0; max-width: 104px; gap: 5px; padding: 6px 7px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .title-actions { gap: 0; }
+  .title-actions button { padding: 5px; }
+  .activitybar { width: 39px; padding-inline: 3px; }
+  .activitybar button { width: 32px; height: 36px; }
+  .sidebar { width: 102px; }
+  .sidebar-heading { padding-inline: 6px; font-size: 8px; letter-spacing: .7px; }
+  .tree-heading { gap: 3px; padding-inline: 5px; font-size: 8px; }
+  .file-list { padding-inline: 4px; }
+  .file-row { gap: 4px; padding-inline: 5px; font-size: 10px; }
+  .breadcrumb { padding-inline: 9px; gap: 4px; font-size: 9px; }
+  .terminal { height: 132px; }
+  .terminal pre { padding: 7px 9px; font-size: 10px; }
+  .terminal-input { padding: 6px 8px; gap: 6px; }
+  .statusbar { gap: 6px; padding-inline: 7px; font-size: 8px; }
+}
+@media (max-width: 380px) {
+  .sidebar { width: 88px; }
+  .workspace-label { max-width: 82px; }
+  .title-actions button { padding: 4px; }
+  .terminal { height: 120px; }
+}
