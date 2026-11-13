@@ -14,5 +14,6 @@ contextBridge.exposeInMainWorld("syntaxDesktop", {
   setDebugBreakpoint: (file, line, enabled) => ipcRenderer.invoke("syntax:debug-breakpoint", file, line, enabled),
   debugAction: (action) => ipcRenderer.invoke("syntax:debug-action", action),
   debugProperties: (objectId) => ipcRenderer.invoke("syntax:debug-properties", objectId),
+  debugEvaluate: (expression, callFrameId) => ipcRenderer.invoke("syntax:debug-evaluate", expression, callFrameId),
   onDebugEvent: (callback) => { const listener = (_event, payload) => callback(payload); ipcRenderer.on("syntax:debug-event", listener); return () => ipcRenderer.removeListener("syntax:debug-event", listener); }
 });
