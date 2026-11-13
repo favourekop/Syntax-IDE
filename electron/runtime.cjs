@@ -45,11 +45,13 @@ function attachRuntime(ipcMain, getWindow, getProjectRoot) {
     });
     return { ok: true };
   });
+  const stopRuntime = () => { if (activeProcess) terminateProcessTree(activeProcess); };
   ipcMain.handle("syntax:stop-command", async () => {
     if (!activeProcess) return { ok: false, error: "No running command." };
-    terminateProcessTree(activeProcess);
+    stopRuntime();
     return { ok: true };
   });
+  return stopRuntime;
 }
 
 module.exports = { attachRuntime };
