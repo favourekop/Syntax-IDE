@@ -119,7 +119,7 @@ ipcMain.handle("syntax:write-project", async (_event, root, files) => {
 });
 
 attachRuntime(ipcMain, () => mainWindow, () => selectedProjectRoot);
-attachPreview(ipcMain, () => mainWindow, () => selectedProjectRoot);
+const stopPreview = attachPreview(ipcMain, () => mainWindow, () => selectedProjectRoot);
 
 app.whenReady().then(async () => {
   try {
@@ -133,4 +133,4 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
-app.on("before-quit", () => { if (nextServer) nextServer.kill(); });
+app.on("before-quit", () => { stopPreview(); if (nextServer) nextServer.kill(); });
