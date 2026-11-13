@@ -5,6 +5,7 @@ const { spawn } = require("node:child_process");
 const http = require("node:http");
 const { attachRuntime } = require("./runtime.cjs");
 const { attachPreview } = require("./preview.cjs");
+const { attachDebugger } = require("./debugger.cjs");
 
 const isDev = !app.isPackaged;
 let mainWindow;
@@ -120,6 +121,7 @@ ipcMain.handle("syntax:write-project", async (_event, root, files) => {
 
 attachRuntime(ipcMain, () => mainWindow, () => selectedProjectRoot);
 const stopPreview = attachPreview(ipcMain, () => mainWindow, () => selectedProjectRoot);
+const stopDebugger = attachDebugger(ipcMain, () => mainWindow, () => selectedProjectRoot);
 
 app.whenReady().then(async () => {
   try {
@@ -133,4 +135,4 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
-app.on("before-quit", () => { stopPreview(); if (nextServer) nextServer.kill(); });
+app.on("before-quit", () => { stopPreview(); stopDebugger(); if (nextServer) nextServer.kill(); });
