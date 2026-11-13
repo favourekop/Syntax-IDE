@@ -2,6 +2,17 @@ const { spawn } = require("node:child_process");
 const http = require("node:http");
 const fs = require("node:fs/promises");
 
+function terminateProcessTree(child) {
+  if (!child || !child.pid) return;
+  if (process.platform === "win32") {
+    const killer = spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], { windowsHide: true, stdio: "ignore" });
+    killer.on("error", () => { try { child.kill(); } catch {} });
+  } else {
+    try { process.kill(-child.pid, "SIGTERM"); }
+    catch { try { child.kill("SIGTERM"); } catch {} }
+  }
+}
+
 let previewProcess = null;
 let previewWindow = null;
 let activeUrl = null;
@@ -73,7 +84,8 @@ function attachPreview(ipcMain, getWindow, getProjectRoot) {
       cwd: root,
       env: { ...process.env, FORCE_COLOR: "0", HOST: "127.0.0.1", HOSTNAME: "127.0.0.1", BROWSER: "none" },
       windowsHide: true,
-      shell: false
+      shell: false,
+      detached: !isWindows
     });
     previewWindow = win;
     const send = (stream, chunk) => {
@@ -92,7 +104,7 @@ function attachPreview(ipcMain, getWindow, getProjectRoot) {
       activeUrl = await waitForPreview(previewProcess);
       return { ok: true, url: activeUrl };
     } catch (error) {
-      if (previewProcess) previewProcess.kill();
+      if (previewProcess) terminateProcessTree(previewProcess);
       previewProcess = null;
       activeUrl = null;
       return { ok: false, error: error.message };
@@ -100,7 +112,7 @@ function attachPreview(ipcMain, getWindow, getProjectRoot) {
   });
   const stopPreview = () => {
     if (!previewProcess) return false;
-    previewProcess.kill();
+    terminateProcessTree(previewProcess);
     previewProcess = null;
     activeUrl = null;
     return true;
