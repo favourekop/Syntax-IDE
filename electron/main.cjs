@@ -4,6 +4,7 @@ const fs = require("node:fs/promises");
 const { spawn } = require("node:child_process");
 const http = require("node:http");
 const { attachRuntime } = require("./runtime.cjs");
+const { attachPreview } = require("./preview.cjs");
 
 const isDev = !app.isPackaged;
 let mainWindow;
@@ -118,6 +119,7 @@ ipcMain.handle("syntax:write-project", async (_event, root, files) => {
 });
 
 attachRuntime(ipcMain, () => mainWindow, () => selectedProjectRoot);
+attachPreview(ipcMain, () => mainWindow, () => selectedProjectRoot);
 
 app.whenReady().then(async () => {
   try {
