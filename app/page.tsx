@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { SettingsPanel, loadPreferences, type EditorPreferences } from "./settings-panel";
 import {
-  Braces, Files, Search, GitBranch, Play, Blocks, Cloud, Settings,
+  Braces, Files, Search, GitBranch, Play, Blocks, Cloud, Settings, Bug, Pause, StepForward, Square,
   FolderOpen, Plus, ChevronDown, ChevronRight, Terminal, PanelBottom,
   CircleHelp, Bell, Command, Monitor, Download, ShieldCheck
 } from "lucide-react";
@@ -18,7 +18,7 @@ const starterFiles = [
 export default function Home() {
   const [files, setFiles] = useState(starterFiles);
   const [active, setActive] = useState("main.js");
-  const [panel, setPanel] = useState<"terminal" | "output" | "preview">("terminal");
+  const [panel, setPanel] = useState<"terminal" | "output" | "preview" | "debug">("terminal");
   const [explorerOpen, setExplorerOpen] = useState(true);
   const [message, setMessage] = useState("Welcome to SYNTAX IDE. Your desktop workspace is ready.");
   const [projectPath, setProjectPath] = useState("No folder opened");
@@ -29,12 +29,62 @@ export default function Home() {
   const [preferences, setPreferences] = useState<EditorPreferences>(loadPreferences);
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewStarting, setPreviewStarting] = useState(false);
+  const [debugActive, setDebugActive] = useState(false);
+  const [debugStatus, setDebugStatus] = useState("Debugger idle");
+  const [debugLine, setDebugLine] = useState("1");
+  const [debugFrames, setDebugFrames] = useState<Array<{callFrameId:string;functionName:string;url:string;lineNumber:number;scopes:Array<{name:string;type:string;objectId?:string}>}>>([]);
+  const [debugVariables, setDebugVariables] = useState<Array<{name:string;value:string|number|boolean;type?:string}>>([]);
+  const [debugOutput, setDebugOutput] = useState<string[]>([]);
   const current = files.find((file) => file.name === active) ?? files[0] ?? { name: "Welcome", language: "plaintext", value: "// Open a project folder or create a new file to begin." };
 
   useEffect(() => {
     const unsubscribe = window.syntaxDesktop?.onTerminalOutput((payload) => {
       setTerminalOutput((value) => (value + payload.text).slice(-24000));
       if (payload.stream === "system" && payload.text.includes("process exited")) setRunning(false);
+    });
+    return () => unsubscribe?.();
+  }, []);
+
+  async function startDebugSession() {
+    if (projectPath === "No folder opened") { setMessage("Open a project folder before debugging."); return; }
+    const entry = window.prompt("Node.js entry file (project-relative path):", active);
+    if (!entry) return;
+    setPanel("debug");
+    setDebugStatus("Starting Node inspector…");
+    const result = await window.syntaxDesktop?.startDebug(entry);
+    if (result?.ok) { setDebugActive(true); setDebugStatus("Debug session running"); }
+    else setDebugStatus(result?.error ?? "Could not start debugger.");
+  }
+
+  async function debugAction(action: "continue" | "pause" | "stepOver" | "stepInto" | "stepOut" | "stop") {
+    const result = await window.syntaxDesktop?.debugAction(action);
+    if (!result?.ok) setDebugStatus(result?.error ?? "Debugger command failed.");
+    if (action === "stop" && result?.ok) { setDebugActive(false); setDebugFrames([]); setDebugVariables([]); setDebugStatus("Debugger stopped"); }
+  }
+
+  async function addBreakpoint() {
+    const result = await window.syntaxDesktop?.setDebugBreakpoint(active, Number(debugLine), true);
+    setDebugStatus(result?.ok ? "Breakpoint set: " + active + ":" + debugLine : result?.error ?? "Could not set breakpoint.");
+  }
+
+  async function inspectScope(objectId?: string) {
+    if (!objectId) return;
+    const result = await window.syntaxDesktop?.debugProperties(objectId);
+    if (result?.ok && result.properties) setDebugVariables(result.properties);
+    else setDebugStatus(result?.error ?? "Could not inspect variables.");
+  }
+
+  useEffect(() => {
+    const unsubscribe = window.syntaxDesktop?.onDebugEvent((event) => {
+      const data = event as { type: string; text?: string; reason?: string; code?: number; frames?: Array<{callFrameId:string;functionName:string;url:string;lineNumber:number;scopes:Array<{name:string;type:string;objectId?:string}>}> };
+      if (data.type === "started") { setDebugActive(true); setDebugStatus("Debug session running"); }
+      if (data.type === "paused") { setDebugFrames(data.frames ?? []); setDebugStatus("Paused: " + (data.reason ?? "breakpoint")); }
+      if (data.type === "resumed") { setDebugFrames([]); setDebugVariables([]); setDebugStatus("Running"); }
+      if (data.type === "disconnected" || data.type === "exited") { setDebugActive(false); setDebugFrames([]); setDebugStatus(data.type === "exited" ? "Process exited (" + data.code + ")" : "Debugger disconnected"); }
+      if (data.type === "output" || data.type === "console" || data.type === "exception") {
+        const line = data.text ?? JSON.stringify(event);
+        setDebugOutput(all => [...all, line].slice(-100));
+      }
     });
     return () => unsubscribe?.();
   }, []);
@@ -163,7 +213,7 @@ export default function Home() {
 
       <div className="workspace">
         <aside className="activitybar">
-          <button className="selected" title="Explorer"><Files/></button><button title="Search"><Search/></button><button title="Source control"><GitBranch/></button><button title="Run and debug"><Play/></button><button title="Extensions"><Blocks/></button><div className="activitySpacer"/><button title="Cloud services"><Cloud/></button><button title="Settings" onClick={() => setSettingsOpen(true)}><Settings/></button>
+          <button className="selected" title="Explorer"><Files/></button><button title="Search"><Search/></button><button title="Source control"><GitBranch/></button><button title="Run and debug" onClick={() => setPanel("debug")}><Bug/></button><button title="Extensions"><Blocks/></button><div className="activitySpacer"/><button title="Cloud services"><Cloud/></button><button title="Settings" onClick={() => setSettingsOpen(true)}><Settings/></button>
         </aside>
 
         {explorerOpen && <aside className="explorer">
@@ -178,9 +228,10 @@ export default function Home() {
           <div className="editorMeta"><span>SYNTAX WORKSPACE</span><span>{current.name}</span><span>{current.language.toUpperCase()}</span><span className="metaSpacer"/><button onClick={saveWorkspace}>Save project</button></div>
           <div className="codeEditor"><Editor height="100%" theme={preferences.theme === "light" ? "vs" : preferences.theme === "high-contrast" ? "hc-black" : "vs-dark"} language={current.language} value={current.value} onChange={updateCode} options={{ minimap: { enabled: preferences.minimap }, wordWrap: preferences.wordWrap, fontSize: preferences.fontSize, fontFamily: "JetBrains Mono, Consolas, monospace", fontLigatures: true, padding: { top: 18 }, automaticLayout: true, scrollBeyondLastLine: false, smoothScrolling: true, cursorBlinking: "smooth" }}/></div>
           <div className="bottomPanel">
-            <div className="panelTabs"><button className={panel === "terminal" ? "panelActive" : ""} onClick={() => setPanel("terminal")}><Terminal size={15}/> TERMINAL</button><button className={panel === "output" ? "panelActive" : ""} onClick={() => setPanel("output")}>OUTPUT</button><button className={panel === "preview" ? "panelActive" : ""} onClick={() => setPanel("preview")}>LOCAL PREVIEW</button>{panel === "preview" && <><button onClick={runLocalPreview} disabled={previewStarting || !!previewUrl}>{previewStarting ? "STARTING…" : "START PREVIEW"}</button><button onClick={stopLocalPreview} disabled={!previewUrl}>STOP</button></>}<span/><button title="Hide panel"><PanelBottom size={16}/></button></div>
+            <div className="panelTabs"><button className={panel === "terminal" ? "panelActive" : ""} onClick={() => setPanel("terminal")}><Terminal size={15}/> TERMINAL</button><button className={panel === "output" ? "panelActive" : ""} onClick={() => setPanel("output")}>OUTPUT</button><button className={panel === "debug" ? "panelActive" : ""} onClick={() => setPanel("debug")}><Bug size={14}/> DEBUG</button><button className={panel === "preview" ? "panelActive" : ""} onClick={() => setPanel("preview")}>LOCAL PREVIEW</button>{panel === "preview" && <><button onClick={runLocalPreview} disabled={previewStarting || !!previewUrl}>{previewStarting ? "STARTING…" : "START PREVIEW"}</button><button onClick={stopLocalPreview} disabled={!previewUrl}>STOP</button></>}<span/><button title="Hide panel"><PanelBottom size={16}/></button></div>
             {panel === "terminal" && <div className="terminalContent terminalLive"><pre aria-live="polite">{terminalOutput}</pre><form className="terminalCommand" onSubmit={executeCommand}><span>$</span><input aria-label="Terminal command" value={terminalCommand} onChange={(event) => setTerminalCommand(event.target.value)} placeholder={projectPath === "No folder opened" ? "Open a project folder to run commands" : "Enter a command, e.g. npm run dev"} disabled={projectPath === "No folder opened" || running}/><button type="submit" disabled={projectPath === "No folder opened" || running}>Run</button><button type="button" onClick={stopCommand} disabled={!running}>Stop</button></form></div>}
             {panel === "output" && <div className="terminalContent"><p>BUILD OUTPUT</p><p>{message}</p></div>}
+            {panel === "debug" && <div className="debugPanel"><div className="debugToolbar"><strong>{debugStatus}</strong><button onClick={startDebugSession} disabled={debugActive}>Start Node debug</button><button onClick={() => debugAction("continue")} disabled={!debugActive}><Play size={13}/> Continue</button><button onClick={() => debugAction("pause")} disabled={!debugActive}><Pause size={13}/> Pause</button><button onClick={() => debugAction("stepOver")} disabled={!debugActive}><StepForward size={13}/> Step over</button><button onClick={() => debugAction("stepInto")} disabled={!debugActive}>Step into</button><button onClick={() => debugAction("stepOut")} disabled={!debugActive}>Step out</button><button onClick={() => debugAction("stop")} disabled={!debugActive}><Square size={13}/> Stop</button></div><div className="debugBreakpoint"><span>Breakpoint in active file</span><input aria-label="Breakpoint line" type="number" min="1" value={debugLine} onChange={e => setDebugLine(e.target.value)}/><button onClick={addBreakpoint} disabled={!debugActive}>Add breakpoint</button></div><div className="debugColumns"><section><h4>CALL STACK / SCOPES</h4>{debugFrames.length ? debugFrames.map(frame => <article key={frame.callFrameId}><strong>{frame.functionName}</strong><small>{frame.url.split("/").slice(-2).join("/")}:{frame.lineNumber + 1}</small>{frame.scopes.map(scope => <button key={scope.name} disabled={!scope.objectId} onClick={() => inspectScope(scope.objectId)}>{scope.name} · inspect</button>)}</article>) : <p>Start a Node.js debug session. Paused frames and scopes appear here.</p>}</section><section><h4>VARIABLES</h4>{debugVariables.map(item => <div className="debugVariable" key={item.name}><strong>{item.name}</strong><span>{String(item.value)}</span></div>)}</section></div><div className="debugConsole"><h4>DEBUG CONSOLE</h4>{debugOutput.map((line,index) => <p key={index}>{line}</p>)}</div></div>}
             {panel === "preview" && (previewUrl ? <iframe title="Private localhost project preview" src={previewUrl} className="previewFrame"/> : <div className="previewEmpty"><strong>Local development preview</strong><p>{message}</p><span>Start Preview runs your configured development command on this computer only.</span><button onClick={runLocalPreview} disabled={previewStarting || projectPath === "No folder opened"}>{previewStarting ? "Starting…" : "Start localhost preview"}</button></div>)}
           </div>
         </section>
