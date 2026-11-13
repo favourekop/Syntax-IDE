@@ -119,7 +119,7 @@ ipcMain.handle("syntax:write-project", async (_event, root, files) => {
   return { ok: true };
 });
 
-attachRuntime(ipcMain, () => mainWindow, () => selectedProjectRoot);
+const stopRuntime = attachRuntime(ipcMain, () => mainWindow, () => selectedProjectRoot);
 const stopPreview = attachPreview(ipcMain, () => mainWindow, () => selectedProjectRoot);
 const stopDebugger = attachDebugger(ipcMain, () => mainWindow, () => selectedProjectRoot);
 
@@ -135,4 +135,4 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
-app.on("before-quit", () => { stopPreview(); stopDebugger(); if (nextServer) nextServer.kill(); });
+app.on("before-quit", () => { stopPreview(); stopDebugger(); stopRuntime(); if (nextServer) nextServer.kill(); });
