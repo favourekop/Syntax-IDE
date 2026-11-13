@@ -66,33 +66,53 @@ ipcMain.handle("syntax:choose-folder", async () => {
   return selectedProjectRoot ? { path: selectedProjectRoot } : null;
 });
 
+function isInsideProject(root, target) {
+  const relative = path.relative(path.resolve(root), path.resolve(target));
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+async function collectProjectFiles(root, directory = root, output = []) {
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  for (const entry of entries) {
+    if (ignoredFolders.has(entry.name) || entry.name === ".DS_Store") continue;
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isSymbolicLink()) continue;
+    if (entry.isDirectory()) {
+      await collectProjectFiles(root, fullPath, output);
+      continue;
+    }
+    if (!entry.isFile() || !allowedExtensions.has(path.extname(entry.name).toLowerCase())) continue;
+    const relativeName = path.relative(root, fullPath).split(path.sep).join("/");
+    const stat = await fs.stat(fullPath);
+    if (stat.size > 1024 * 1024) continue;
+    output.push({
+      name: relativeName,
+      value: await fs.readFile(fullPath, "utf8"),
+      language: path.extname(entry.name).toLowerCase().replace(".", "") === "js" ? "javascript" : path.extname(entry.name).toLowerCase().replace(".", "")
+    });
+    if (output.length >= 500) return output;
+  }
+  return output;
+}
+
 ipcMain.handle("syntax:read-project", async (_event, root) => {
   const safeRoot = selectedProjectRoot;
   if (!safeRoot || path.resolve(String(root || "")) !== path.resolve(safeRoot)) throw new Error("Choose a project folder before accessing files.");
-  const entries = await fs.readdir(safeRoot, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    if (!entry.isFile() || ignoredFolders.has(entry.name)) continue;
-    const extension = path.extname(entry.name).toLowerCase();
-    if (!allowedExtensions.has(extension)) continue;
-    const fullPath = path.join(safeRoot, entry.name);
-    const stat = await fs.stat(fullPath);
-    if (stat.size > 1024 * 1024) continue;
-    files.push({ name: entry.name, value: await fs.readFile(fullPath, "utf8"), language: extension === ".js" ? "javascript" : extension.replace(".", "") });
-    if (files.length >= 100) break;
-  }
-  return { files };
+  return { files: await collectProjectFiles(safeRoot) };
 });
 
 ipcMain.handle("syntax:write-project", async (_event, root, files) => {
   const safeRoot = selectedProjectRoot;
   if (!safeRoot || path.resolve(String(root || "")) !== path.resolve(safeRoot)) throw new Error("Choose a project folder before accessing files.");
   for (const file of Array.isArray(files) ? files : []) {
-    const name = String(file.name || "");
-    if (!/^[a-zA-Z0-9._-]+$/.test(name) || name.startsWith(".")) continue;
+    const name = String(file.name || "").replace(/\\\\/g, "/");
+    if (!name || name.startsWith("/") || name.split("/").some(part => !part || part === "." || part === ".." || part.startsWith("."))) continue;
     const extension = path.extname(name).toLowerCase();
     if (!allowedExtensions.has(extension)) continue;
-    await fs.writeFile(path.join(safeRoot, name), String(file.value ?? ""), "utf8");
+    const destination = path.resolve(safeRoot, name);
+    if (!isInsideProject(safeRoot, destination)) continue;
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.writeFile(destination, String(file.value ?? ""), "utf8");
   }
   return { ok: true };
 });
