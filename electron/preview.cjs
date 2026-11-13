@@ -1,6 +1,5 @@
 const { spawn } = require("node:child_process");
 const http = require("node:http");
-const net = require("node:net");
 
 let previewProcess = null;
 let previewWindow = null;
@@ -17,14 +16,8 @@ function probePort(port) {
   });
 }
 
-async function findPreviewPort(start = 3000, end = 4999) {
-  for (let port = start; port <= end; port += 1) {
-    if (await probePort(port)) return port;
-  }
-  return null;
-}
 
-function waitForPreview(child, send, timeout = 90000) {
+function waitForPreview(child, timeout = 90000) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const started = Date.now();
@@ -37,8 +30,6 @@ function waitForPreview(child, send, timeout = 90000) {
         resolve("http://127.0.0.1:" + match[1]);
         return;
       }
-      const port = await findPreviewPort();
-      if (port) { settled = true; resolve("http://127.0.0.1:" + port); return; }
       if (Date.now() - started > timeout) {
         settled = true;
         reject(new Error("Preview server did not become ready. Check the command and terminal output."));
@@ -81,7 +72,7 @@ function attachPreview(ipcMain, getWindow, getProjectRoot) {
       if (win && !win.isDestroyed()) win.webContents.send("syntax:preview-stopped");
     });
     try {
-      activeUrl = await waitForPreview(previewProcess, send);
+      activeUrl = await waitForPreview(previewProcess);
       return { ok: true, url: activeUrl };
     } catch (error) {
       if (previewProcess) previewProcess.kill();
