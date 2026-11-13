@@ -54,8 +54,9 @@ async function detectPreviewCommand(root) {
     if (all.next) return "npm run dev -- --hostname 127.0.0.1";
     if (all.vite) return "npm run dev -- --host 127.0.0.1";
     if (all["@angular/cli"]) return "npm start -- --host 127.0.0.1";
+    if (all["react-scripts"]) return "npm start";
   } catch {}
-  return "npm run dev";
+  return "";
 }
 
 function attachPreview(ipcMain, getWindow, getProjectRoot) {
@@ -64,7 +65,8 @@ function attachPreview(ipcMain, getWindow, getProjectRoot) {
     if (!root) return { ok: false, error: "Open a project folder before starting a local preview." };
     if (previewProcess) return { ok: false, error: "A preview process is already running.", url: activeUrl };
     const input = String(command || await detectPreviewCommand(root)).trim();
-    if (!input || input.length > 2000) return { ok: false, error: "Enter a valid preview command." };
+    if (!input) return { ok: false, error: "Could not safely detect this framework. Set a preview command in Settings that explicitly binds to 127.0.0.1." };
+    if (input.length > 2000) return { ok: false, error: "Preview command is too long." };
     const win = getWindow();
     const isWindows = process.platform === "win32";
     previewProcess = spawn(isWindows ? "cmd.exe" : "bash", isWindows ? ["/d", "/s", "/c", input] : ["-lc", input], {
