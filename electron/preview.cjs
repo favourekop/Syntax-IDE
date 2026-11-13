@@ -84,13 +84,15 @@ function attachPreview(ipcMain, getWindow, getProjectRoot) {
       return { ok: false, error: error.message };
     }
   });
-  ipcMain.handle("syntax:stop-preview", async () => {
-    if (!previewProcess) return { ok: false, error: "No local preview is running." };
+  const stopPreview = () => {
+    if (!previewProcess) return false;
     previewProcess.kill();
     previewProcess = null;
     activeUrl = null;
-    return { ok: true };
-  });
+    return true;
+  };
+  ipcMain.handle("syntax:stop-preview", async () => stopPreview() ? { ok: true } : { ok: false, error: "No local preview is running." });
+  return stopPreview;
 }
 
 module.exports = { attachPreview };
