@@ -83,7 +83,10 @@ export function SettingsPanel({ onClose, onChange }: {
     setCapture(null);
   }
 
-  const duplicates = Object.entries(prefs.keybindings).reduce<Record<string, string[]>>((all, [action, binding]) => { all[binding] = [...(all[binding] || []), action]; return all; }, {});\n  const conflicts = Object.entries(duplicates).filter(([, actions]) => actions.length > 1);\n\n  const shortcuts = [
+  const duplicates = Object.entries(prefs.keybindings).reduce<Record<string, string[]>>((all, [action, binding]) => { all[binding] = [...(all[binding] || []), action]; return all; }, {});
+  const conflicts = Object.entries(duplicates).filter(([, actions]) => actions.length > 1);
+
+  const shortcuts = [
     ["save", "Save project"], ["openFolder", "Open project folder"],
     ["toggleTerminal", "Toggle terminal"], ["startPreview", "Start local preview"],
     ["openSettings", "Open settings"], ["runCommand", "Run terminal command"]
