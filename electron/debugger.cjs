@@ -127,6 +127,7 @@ function attachDebugger(ipcMain, getWindow, getProjectRoot) {
     if (!inside(rootPath, target) || target === path.resolve(rootPath)) return { ok: false, error: "Choose an entry file inside the active project." };
     const stat = await fs.stat(target).catch(() => null);
     if (!stat?.isFile()) return { ok: false, error: "The selected entry file does not exist." };
+    if (![".js", ".cjs", ".mjs"].includes(path.extname(target).toLowerCase())) return { ok: false, error: "The first debugger target supports JavaScript entry files (.js, .cjs, .mjs). TypeScript and browser debugging will be added as separate runtime targets." };
     child = spawn(process.env.SYNTAX_NODE_PATH || "node", ["--inspect=127.0.0.1:0", target], {
       cwd: rootPath,
       env: { ...process.env, FORCE_COLOR: "0" },
@@ -146,6 +147,7 @@ function attachDebugger(ipcMain, getWindow, getProjectRoot) {
       emit("syntax:debug-event", { type: "exited", code });
       child = null;
       rootPath = null;
+      breakpoints.clear();
       if (socket) socket.close();
     });
     try {
