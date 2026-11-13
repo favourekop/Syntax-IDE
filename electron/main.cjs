@@ -81,7 +81,8 @@ ipcMain.handle("syntax:read-project", async (_event, root) => {
 });
 
 ipcMain.handle("syntax:write-project", async (_event, root, files) => {
-  const safeRoot = path.resolve(String(root || ""));
+  const safeRoot = selectedProjectRoot;
+  if (!safeRoot || path.resolve(String(root || "")) !== path.resolve(safeRoot)) throw new Error("Choose a project folder before accessing files.");
   for (const file of Array.isArray(files) ? files : []) {
     const name = String(file.name || "");
     if (!/^[a-zA-Z0-9._-]+$/.test(name) || name.startsWith(".")) continue;
