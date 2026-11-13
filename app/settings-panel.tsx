@@ -22,7 +22,7 @@ const defaults: EditorPreferences = {
   previewCommand: "npm run dev -- --host 127.0.0.1",
   keybindings: {
     save: "Ctrl+S",
-    openFolder: "Ctrl+K Ctrl+O",
+    openFolder: "Ctrl+O",
     toggleTerminal: "Ctrl+`",
     startPreview: "Ctrl+Shift+P",
     openSettings: "Ctrl+,",
