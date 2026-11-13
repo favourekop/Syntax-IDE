@@ -21,7 +21,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - name: Install desktop dependencies
         run: npm install
       - name: Build Next.js desktop interface
@@ -44,7 +43,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - name: Install desktop dependencies
         run: npm install
       - name: Package Windows installer
