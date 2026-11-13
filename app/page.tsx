@@ -47,7 +47,8 @@ export default function Home() {
 
   async function startDebugSession() {
     if (projectPath === "No folder opened") { setMessage("Open a project folder before debugging."); return; }
-    const defaultEntry = files.find(file => [".js", ".cjs", ".mjs"].some(ext => file.name.toLowerCase().endsWith(ext)))?.name ?? active;\n    const entry = window.prompt("Node.js entry file (project-relative path):", defaultEntry);
+    const defaultEntry = files.find(file => [".js", ".cjs", ".mjs"].some(ext => file.name.toLowerCase().endsWith(ext)))?.name ?? active;
+    const entry = window.prompt("Node.js entry file (project-relative path):", defaultEntry);
     if (!entry) return;
     setPanel("debug");
     setDebugStatus("Starting Node inspector…");
