@@ -59,6 +59,25 @@ export default function Home() {
 
   const updateCode = (value?: string) => setFiles((all) => all.map((file) => file.name === active ? { ...file, value: value ?? "" } : file));
 
+  function createFile() {
+    const requested = window.prompt("New file path (example: src/app.tsx)");
+    if (!requested) return;
+    const name = requested.trim().replace(/\\\\/g, "/");
+    if (!name || name.startsWith("/") || name.split("/").some((part) => !part || part === "." || part === ".." || part.startsWith("."))) {
+      setMessage("Use a project-relative file path without hidden or parent folders.");
+      return;
+    }
+    if (files.some((file) => file.name === name)) {
+      setMessage("A file with that path is already open.");
+      return;
+    }
+    const extension = name.split(".").pop()?.toLowerCase() ?? "txt";
+    const language = extension === "js" ? "javascript" : extension;
+    setFiles((all) => [...all, { name, language, value: "" }]);
+    setActive(name);
+    setMessage(`Created ${name}. Save the project to write it to disk.`);
+  }
+
   async function openFolder() {
     const result = await window.syntaxDesktop?.chooseProjectFolder();
     if (result?.path) {
@@ -100,7 +119,7 @@ export default function Home() {
         </aside>
 
         {explorerOpen && <aside className="explorer">
-          <div className="sectionHeading">EXPLORER <span><Plus size={16}/></span></div>
+          <div className="sectionHeading">EXPLORER <button type="button" title="New file" aria-label="Create new file" onClick={createFile}><Plus size={16}/></button></div>
           <button className="projectHeading" onClick={() => setExplorerOpen(false)}><ChevronDown size={14}/><FolderOpen size={15}/><strong>{projectPath === "No folder opened" ? "SYNTAX WORKSPACE" : projectPath.split(/[\\/]/).pop()}</strong></button>
           <div className="fileList">{files.map((file) => <button key={file.name} className={active === file.name ? "file active" : "file"} onClick={() => setActive(file.name)}><Braces size={15}/>{file.name}</button>)}</div>
           <button className="openFolder" onClick={openFolder}><FolderOpen size={15}/> Open project folder</button>
