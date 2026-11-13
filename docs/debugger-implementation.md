@@ -11,6 +11,7 @@ The debugger must be a real runtime debugger, not a mock panel. The first suppor
 - Supports set/remove breakpoint IPC, continue, pause, step over, step into, step out, and stop.
 - Streams paused call frames, scope objects, console output, and runtime exceptions to the workbench.
 - Exposes scope-property inspection to the variables view.
+- Allows an explicit user-triggered expression evaluation in the paused top call frame.
 - Cleans up the debug process on stop and application exit.
 
 This is implementation work, not a verified release: the full Windows integration tests still need to pass.
