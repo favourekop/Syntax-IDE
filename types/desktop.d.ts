@@ -12,6 +12,11 @@ declare global {
       onPreviewStopped: (callback: () => void) => () => void;
       stopCommand: () => Promise<{ ok: boolean; error?: string }>;
       onTerminalOutput: (callback: (payload: { stream: string; text: string }) => void) => () => void;
+      startDebug: (entry: string) => Promise<{ ok: boolean; error?: string }>;
+      setDebugBreakpoint: (file: string, line: number, enabled?: boolean) => Promise<{ ok: boolean; error?: string; breakpointId?: string }>;
+      debugAction: (action: "continue" | "pause" | "stepOver" | "stepInto" | "stepOut" | "stop") => Promise<{ ok: boolean; error?: string }>;
+      debugProperties: (objectId: string) => Promise<{ ok: boolean; error?: string; properties?: Array<{ name: string; value: string | number | boolean; type?: string; objectId?: string }> }>;
+      onDebugEvent: (callback: (payload: { type: string; [key: string]: unknown }) => void) => () => void;
     };
   }
 }
