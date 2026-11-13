@@ -187,7 +187,8 @@ export default function Home() {
       </div>
 
       <footer className="statusbar"><span><GitBranch size={13}/> desktop</span><span>JavaScript</span><span className="statusSpacer"/><span><ShieldCheck size={13}/> Local-first workspace</span><span>UTF-8</span><span>Windows desktop preview</span></footer>
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onChange={setPreferences}/> }\n      <div className="welcomeOverlay" aria-hidden="true"><span><Command size={12}/> SYNTAX DESKTOP FOUNDATION</span><span><Monitor size={12}/> Windows 10 / 11 first</span><span><Download size={12}/> Installer pipeline in progress</span></div>
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onChange={setPreferences}/> }
+      <div className="welcomeOverlay" aria-hidden="true"><span><Command size={12}/> SYNTAX DESKTOP FOUNDATION</span><span><Monitor size={12}/> Windows 10 / 11 first</span><span><Download size={12}/> Installer pipeline in progress</span></div>
     </main>
   );
 }
