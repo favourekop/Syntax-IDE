@@ -5,6 +5,11 @@ import { X, Keyboard, Monitor, Code2, Terminal, RotateCcw } from "lucide-react";
 
 export type EditorPreferences = {
   fontSize: number;
+  fontFamily: string;
+  renderWhitespace: "none" | "boundary" | "all";
+  smoothScrolling: boolean;
+  accessibilitySupport: "auto" | "on" | "off";
+  formatOnPaste: boolean;
   tabSize: number;
   lineNumbers: "on" | "off";
   cursorStyle: "line" | "block" | "underline";
@@ -19,6 +24,11 @@ export type EditorPreferences = {
 
 const defaults: EditorPreferences = {
   fontSize: 14,
+  fontFamily: "JetBrains Mono, Consolas, monospace",
+  renderWhitespace: "none",
+  smoothScrolling: true,
+  accessibilitySupport: "auto",
+  formatOnPaste: true,
   tabSize: 2,
   lineNumbers: "on",
   cursorStyle: "line",
@@ -106,6 +116,11 @@ export function SettingsPanel({ onClose, onChange }: {
       <div className="settingsBody">
         <section className="settingsSection"><h3><Code2 size={15}/> Editor</h3>
           <label>Font size <strong>{prefs.fontSize}px</strong><input type="range" min="11" max="24" value={prefs.fontSize} onChange={e => update("fontSize", Number(e.target.value))}/></label>
+          <label>Font family <select value={prefs.fontFamily} onChange={e => update("fontFamily", e.target.value)}><option value="JetBrains Mono, Consolas, monospace">JetBrains Mono</option><option value="Cascadia Code, Consolas, monospace">Cascadia Code</option><option value="Consolas, monospace">Consolas</option><option value="monospace">System monospace</option></select></label>
+          <label>Whitespace <select value={prefs.renderWhitespace} onChange={e => update("renderWhitespace", e.target.value as EditorPreferences["renderWhitespace"])}><option value="none">Hide</option><option value="boundary">Boundaries</option><option value="all">Show all</option></select></label>
+          <label>Accessibility support <select value={prefs.accessibilitySupport} onChange={e => update("accessibilitySupport", e.target.value as EditorPreferences["accessibilitySupport"])}><option value="auto">Automatic</option><option value="on">On</option><option value="off">Off</option></select></label>
+          <label className="settingToggle">Smooth scrolling <input type="checkbox" checked={prefs.smoothScrolling} onChange={e => update("smoothScrolling", e.target.checked)}/></label>
+          <label className="settingToggle">Format on paste <input type="checkbox" checked={prefs.formatOnPaste} onChange={e => update("formatOnPaste", e.target.checked)}/></label>
           <label>Tab size <select value={prefs.tabSize} onChange={e => update("tabSize", Number(e.target.value))}><option value={2}>2 spaces</option><option value={4}>4 spaces</option><option value={8}>8 spaces</option></select></label>
           <label>Line numbers <select value={prefs.lineNumbers} onChange={e => update("lineNumbers", e.target.value as EditorPreferences["lineNumbers"])}><option value="on">On</option><option value="off">Off</option></select></label>
           <label>Cursor style <select value={prefs.cursorStyle} onChange={e => update("cursorStyle", e.target.value as EditorPreferences["cursorStyle"])}><option value="line">Line</option><option value="block">Block</option><option value="underline">Underline</option></select></label>
