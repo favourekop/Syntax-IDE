@@ -16,6 +16,7 @@ declare global {
       setDebugBreakpoint: (file: string, line: number, enabled?: boolean) => Promise<{ ok: boolean; error?: string; breakpointId?: string }>;
       debugAction: (action: "continue" | "pause" | "stepOver" | "stepInto" | "stepOut" | "stop") => Promise<{ ok: boolean; error?: string }>;
       debugProperties: (objectId: string) => Promise<{ ok: boolean; error?: string; properties?: Array<{ name: string; value: string | number | boolean; type?: string; objectId?: string }> }>;
+      debugEvaluate: (expression: string, callFrameId?: string) => Promise<{ ok: boolean; error?: string; value?: string | number | boolean }>;
       onDebugEvent: (callback: (payload: { type: string; [key: string]: unknown }) => void) => () => void;
     };
   }
