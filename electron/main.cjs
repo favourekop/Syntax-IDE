@@ -106,14 +106,37 @@ ipcMain.handle("syntax:read-project", async (_event, root) => {
 ipcMain.handle("syntax:write-project", async (_event, root, files) => {
   const safeRoot = selectedProjectRoot;
   if (!safeRoot || path.resolve(String(root || "")) !== path.resolve(safeRoot)) throw new Error("Choose a project folder before accessing files.");
+  const rootReal = await fs.realpath(safeRoot);
   for (const file of Array.isArray(files) ? files : []) {
     const name = String(file.name || "").replaceAll("\\", "/");
-    if (!name || name.startsWith("/") || name.split("/").some(part => !part || part === "." || part === ".." || part.startsWith("."))) continue;
+    const parts = name.split("/");
+    if (!name || name.startsWith("/") || parts.some(part => !part || part === "." || part === ".." || part.startsWith("."))) continue;
     const extension = path.extname(name).toLowerCase();
     if (!allowedExtensions.has(extension)) continue;
-    const destination = path.resolve(safeRoot, name);
-    if (!isInsideProject(safeRoot, destination)) continue;
-    await fs.mkdir(path.dirname(destination), { recursive: true });
+    let parent = rootReal;
+    let blocked = false;
+    for (const segment of parts.slice(0, -1)) {
+      parent = path.join(parent, segment);
+      try {
+        const info = await fs.lstat(parent);
+        if (info.isSymbolicLink() || !info.isDirectory()) { blocked = true; break; }
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+        await fs.mkdir(parent);
+      }
+      const realParent = await fs.realpath(parent);
+      if (!isInsideProject(rootReal, realParent)) { blocked = true; break; }
+      parent = realParent;
+    }
+    if (blocked) continue;
+    const destination = path.join(parent, parts[parts.length - 1]);
+    if (!isInsideProject(rootReal, destination)) continue;
+    try {
+      const existing = await fs.lstat(destination);
+      if (existing.isSymbolicLink() || !existing.isFile()) continue;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
     await fs.writeFile(destination, String(file.value ?? ""), "utf8");
   }
   return { ok: true };
