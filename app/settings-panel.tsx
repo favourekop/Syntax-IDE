@@ -55,7 +55,7 @@ export function SettingsPanel({ onClose, onChange }: {
       if (event.ctrlKey) parts.push("Ctrl");
       if (event.altKey) parts.push("Alt");
       if (event.shiftKey) parts.push("Shift");
-      if (event.metaKey) parts.push("Meta");
+      if (event.metaKey) parts.push("Ctrl");
       if (!["Control", "Alt", "Shift", "Meta"].includes(event.key)) parts.push(event.key.length === 1 ? event.key.toUpperCase() : event.key);
       if (parts.length > 0 && !["Ctrl", "Alt", "Shift", "Meta"].includes(parts[parts.length - 1])) {
         const next = { ...prefs, keybindings: { ...prefs.keybindings, [capture]: parts.join("+") } };
@@ -83,7 +83,7 @@ export function SettingsPanel({ onClose, onChange }: {
     setCapture(null);
   }
 
-  const shortcuts = [
+  const duplicates = Object.entries(prefs.keybindings).reduce<Record<string, string[]>>((all, [action, binding]) => { all[binding] = [...(all[binding] || []), action]; return all; }, {});\n  const conflicts = Object.entries(duplicates).filter(([, actions]) => actions.length > 1);\n\n  const shortcuts = [
     ["save", "Save project"], ["openFolder", "Open project folder"],
     ["toggleTerminal", "Toggle terminal"], ["startPreview", "Start local preview"],
     ["openSettings", "Open settings"], ["runCommand", "Run terminal command"]
@@ -101,7 +101,7 @@ export function SettingsPanel({ onClose, onChange }: {
           <label className="settingToggle">Autosave project files <input type="checkbox" checked={prefs.autosave} onChange={e => update("autosave", e.target.checked)}/></label>
         </section>
         <section className="settingsSection"><h3><Monitor size={15}/> Local preview</h3><label>Development command<input className="settingText" value={prefs.previewCommand} onChange={e => update("previewCommand", e.target.value)} placeholder="Auto-detect from package.json (or enter a command)"/></label><p>Runs on this computer and binds to loopback. Preview is never published automatically.</p></section>
-        <section className="settingsSection"><h3><Keyboard size={15}/> Keyboard shortcuts</h3>{shortcuts.map(([key, label]) => <div className="shortcutRow" key={key}><span>{label}</span><button onClick={() => setCapture(key)}>{capture === key ? "Press keys…" : prefs.keybindings[key]}</button></div>)}<p>Choose a shortcut, then press the key combination. Press Escape to cancel.</p></section>
+        <section className="settingsSection"><h3><Keyboard size={15}/> Keyboard shortcuts</h3>{shortcuts.map(([key, label]) => <div className="shortcutRow" key={key}><span>{label}</span><button onClick={() => setCapture(key)}>{capture === key ? "Press keys…" : prefs.keybindings[key]}</button></div>)}<p>Choose a shortcut, then press the key combination. Press Escape to cancel.</p>{conflicts.length > 0 && <p className="shortcutWarning">Shortcut conflicts: {conflicts.map(([binding, actions]) => binding + " (" + actions.join(", ") + ")").join("; ")}. Assign unique combinations before relying on these shortcuts.</p>}</section>
         <section className="settingsSection"><h3><Terminal size={15}/> Workspace</h3><p>Project files remain on your computer. IDE preferences are stored locally on this device.</p></section>
       </div>
       <footer><button onClick={reset}><RotateCcw size={14}/> Reset defaults</button><button className="settingsDone" onClick={onClose}>Done</button></footer>
