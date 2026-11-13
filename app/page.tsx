@@ -24,7 +24,7 @@ export default function Home() {
   const [terminalOutput, setTerminalOutput] = useState("SYNTAX IDE local terminal\nOpen a project folder, then enter a command below.\n");
   const [terminalCommand, setTerminalCommand] = useState("");
   const [running, setRunning] = useState(false);
-  const current = files.find((file) => file.name === active) ?? files[0];
+  const current = files.find((file) => file.name === active) ?? files[0] ?? { name: "Welcome", language: "plaintext", value: "// Open a project folder or create a new file to begin." };
 
   useEffect(() => {
     const unsubscribe = window.syntaxDesktop?.onTerminalOutput((payload) => {
@@ -83,11 +83,11 @@ export default function Home() {
     if (result?.path) {
       setProjectPath(result.path);
       const loaded = await window.syntaxDesktop?.readProjectFiles(result.path);
-      if (loaded?.files?.length) {
+      if (loaded?.files) {
         setFiles(loaded.files);
-        setActive(loaded.files[0].name);
-        setMessage(`Opened local project: ${result.path}`);
-      } else setMessage("Folder opened. No supported source files were found at its top level.");
+        setActive(loaded.files[0]?.name ?? "");
+        setMessage(loaded.files.length ? `Opened local project: ${result.path}` : "Folder opened. Create a file to start this project.");
+      }
     }
   }
 
@@ -121,7 +121,7 @@ export default function Home() {
         {explorerOpen && <aside className="explorer">
           <div className="sectionHeading">EXPLORER <button type="button" title="New file" aria-label="Create new file" onClick={createFile}><Plus size={16}/></button></div>
           <button className="projectHeading" onClick={() => setExplorerOpen(false)}><ChevronDown size={14}/><FolderOpen size={15}/><strong>{projectPath === "No folder opened" ? "SYNTAX WORKSPACE" : projectPath.split(/[\\/]/).pop()}</strong></button>
-          <div className="fileList">{files.map((file) => <button key={file.name} className={active === file.name ? "file active" : "file"} onClick={() => setActive(file.name)}><Braces size={15}/>{file.name}</button>)}</div>
+          <div className="fileList">{files.map((file) => <button key={file.name} title={file.name} style={{ paddingLeft: 12 + Math.max(0, file.name.split("/").length - 1) * 13 }} className={active === file.name ? "file active" : "file"} onClick={() => setActive(file.name)}><Braces size={15}/>{file.name.split("/").pop()}</button>)}</div>
           <button className="openFolder" onClick={openFolder}><FolderOpen size={15}/> Open project folder</button>
         </aside>}
 
