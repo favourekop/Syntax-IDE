@@ -106,9 +106,52 @@ export default function Home() {
   }
 
   async function runLocalPreview() {
-    setPanel("preview");
-    setMessage("Local preview is running from the current editor buffer. It is not published to the internet.");
+    if (projectPath === "No folder opened") { setMessage("Open a project folder before starting localhost preview."); return; }
+    setPanel("preview"); setPreviewStarting(true); setMessage("Starting local development server…");
+    const result = await window.syntaxDesktop?.startPreview(preferences.previewCommand);
+    setPreviewStarting(false);
+    if (result?.ok && result.url) { setPreviewUrl(result.url); setMessage("Local preview ready at " + result.url); }
+    else setMessage(result?.error ?? "Could not start local preview.");
   }
+
+  async function stopLocalPreview() {
+    const result = await window.syntaxDesktop?.stopPreview();
+    if (result?.ok) { setPreviewUrl(""); setMessage("Local preview stopped."); }
+    else setMessage(result?.error ?? "No local preview is running.");
+  }
+
+  useEffect(() => {
+    const stopped = window.syntaxDesktop?.onPreviewStopped(() => setPreviewUrl(""));
+    return () => stopped?.();
+  }, []);
+
+  useEffect(() => {
+    if (!preferences.autosave || projectPath === "No folder opened") return;
+    const timer = window.setTimeout(() => { void saveWorkspace(); }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [files, preferences.autosave, projectPath]);
+
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => {
+      const parts: string[] = [];
+      if (event.ctrlKey || event.metaKey) parts.push("Ctrl");
+      if (event.altKey) parts.push("Alt");
+      if (event.shiftKey) parts.push("Shift");
+      const key = event.key.length === 1 ? event.key.toUpperCase() : event.key;
+      if (!["Control", "Alt", "Shift", "Meta"].includes(event.key)) parts.push(key);
+      const pressed = parts.join("+");
+      const action = Object.entries(preferences.keybindings).find(([, binding]) => binding === pressed)?.[0];
+      if (!action) return;
+      if (action === "openSettings") { event.preventDefault(); setSettingsOpen(true); }
+      if (action === "save") { event.preventDefault(); void saveWorkspace(); }
+      if (action === "startPreview") { event.preventDefault(); void runLocalPreview(); }
+      if (action === "toggleTerminal") { event.preventDefault(); setPanel("terminal"); }
+      if (action === "openFolder") { event.preventDefault(); void openFolder(); }
+      if (action === "runCommand") { event.preventDefault(); void executeCommand(); }
+    };
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, [preferences, files, projectPath, terminalCommand]);
 
   return (
     <main className="desktop">
@@ -135,7 +178,7 @@ export default function Home() {
           <div className="editorMeta"><span>SYNTAX WORKSPACE</span><span>{current.name}</span><span>{current.language.toUpperCase()}</span><span className="metaSpacer"/><button onClick={saveWorkspace}>Save project</button></div>
           <div className="codeEditor"><Editor height="100%" theme={preferences.theme === "light" ? "vs" : preferences.theme === "high-contrast" ? "hc-black" : "vs-dark"} language={current.language} value={current.value} onChange={updateCode} options={{ minimap: { enabled: preferences.minimap }, wordWrap: preferences.wordWrap, fontSize: preferences.fontSize, fontFamily: "JetBrains Mono, Consolas, monospace", fontLigatures: true, padding: { top: 18 }, automaticLayout: true, scrollBeyondLastLine: false, smoothScrolling: true, cursorBlinking: "smooth" }}/></div>
           <div className="bottomPanel">
-            <div className="panelTabs"><button className={panel === "terminal" ? "panelActive" : ""} onClick={() => setPanel("terminal")}><Terminal size={15}/> TERMINAL</button><button className={panel === "output" ? "panelActive" : ""} onClick={() => setPanel("output")}>OUTPUT</button><button className={panel === "preview" ? "panelActive" : ""} onClick={() => setPanel("preview")}>LOCAL PREVIEW</button>{panel === "preview" && <><button onClick={runLocalPreview} disabled={previewStarting || !!previewUrl}>{previewStarting ? "STARTING…" : "START PREVIEW"}</button><button onClick={stopLocalPreview} disabled={!previewUrl}>STOP</button></>}<span/><button title="Hide panel"><PanelBottom size={16}/></button></div>
+            <div className="panelTabs"><button className={panel === "terminal" ? "panelActive" : ""} onClick={() => setPanel("terminal")}><Terminal size={15}/> TERMINAL</button><button className={panel === "output" ? "panelActive" : ""} onClick={() => setPanel("output")}>OUTPUT</button><button className={panel === "preview" ? "panelActive" : ""} onClick={() => setPanel("preview")}>LOCAL PREVIEW</button>{panel === "preview" && <><button onClick={runLocalPreview} disabled={previewStarting || !!previewUrl}>{previewStarting ? "STARTING…" : "START PREVIEW"}</button><button onClick={stopLocalPreview} disabled={!previewUrl}>STOP</button></>}{panel === "preview" && <><button onClick={runLocalPreview} disabled={previewStarting || !!previewUrl}>{previewStarting ? "STARTING…" : "START PREVIEW"}</button><button onClick={stopLocalPreview} disabled={!previewUrl}>STOP</button></>}<span/><button title="Hide panel"><PanelBottom size={16}/></button></div>
             {panel === "terminal" && <div className="terminalContent terminalLive"><pre aria-live="polite">{terminalOutput}</pre><form className="terminalCommand" onSubmit={executeCommand}><span>$</span><input aria-label="Terminal command" value={terminalCommand} onChange={(event) => setTerminalCommand(event.target.value)} placeholder={projectPath === "No folder opened" ? "Open a project folder to run commands" : "Enter a command, e.g. npm run dev"} disabled={projectPath === "No folder opened" || running}/><button type="submit" disabled={projectPath === "No folder opened" || running}>Run</button><button type="button" onClick={stopCommand} disabled={!running}>Stop</button></form></div>}
             {panel === "output" && <div className="terminalContent"><p>BUILD OUTPUT</p><p>{message}</p></div>}
             {panel === "preview" && (previewUrl ? <iframe title="Private localhost project preview" src={previewUrl} className="previewFrame"/> : <div className="previewEmpty"><strong>Local development preview</strong><p>{message}</p><span>Start Preview runs your configured development command on this computer only.</span><button onClick={runLocalPreview} disabled={previewStarting || projectPath === "No folder opened"}>{previewStarting ? "Starting…" : "Start localhost preview"}</button></div>)}
@@ -144,7 +187,7 @@ export default function Home() {
       </div>
 
       <footer className="statusbar"><span><GitBranch size={13}/> desktop</span><span>JavaScript</span><span className="statusSpacer"/><span><ShieldCheck size={13}/> Local-first workspace</span><span>UTF-8</span><span>Windows desktop preview</span></footer>
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onChange={setPreferences}/> }\n      <div className="welcomeOverlay" aria-hidden="true"><span><Command size={12}/> SYNTAX DESKTOP FOUNDATION</span><span><Monitor size={12}/> Windows 10 / 11 first</span><span><Download size={12}/> Installer pipeline in progress</span></div>
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onChange={setPreferences}/> }\n      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} onChange={setPreferences}/> }\n      <div className="welcomeOverlay" aria-hidden="true"><span><Command size={12}/> SYNTAX DESKTOP FOUNDATION</span><span><Monitor size={12}/> Windows 10 / 11 first</span><span><Download size={12}/> Installer pipeline in progress</span></div>
     </main>
   );
 }
