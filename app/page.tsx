@@ -47,12 +47,12 @@ export default function Home() {
 
   async function startDebugSession() {
     if (projectPath === "No folder opened") { setMessage("Open a project folder before debugging."); return; }
-    const entry = window.prompt("Node.js entry file (project-relative path):", active);
+    const defaultEntry = files.find(file => [".js", ".cjs", ".mjs"].some(ext => file.name.toLowerCase().endsWith(ext)))?.name ?? active;\n    const entry = window.prompt("Node.js entry file (project-relative path):", defaultEntry);
     if (!entry) return;
     setPanel("debug");
     setDebugStatus("Starting Node inspector…");
     const result = await window.syntaxDesktop?.startDebug(entry);
-    if (result?.ok) { setDebugActive(true); setDebugStatus("Debug session running"); }
+    if (result?.ok) { setDebugActive(true); setDebugStatus("Paused at startup. Set breakpoints, then Continue."); }
     else setDebugStatus(result?.error ?? "Could not start debugger.");
   }
 
