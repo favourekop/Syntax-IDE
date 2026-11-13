@@ -11,7 +11,8 @@
     "build:web": "next build",
     "build:desktop": "npm run build:web && electron-builder --win nsis",
     "build:desktop:dir": "npm run build:web && electron-builder --win dir",
-    "start": "next start --hostname 127.0.0.1"
+    "start": "next start --hostname 127.0.0.1",
+    "build": "npm run build:web"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -31,18 +32,39 @@
   "build": {
     "appId": "org.ekopdesignzhub.syntaxide",
     "productName": "SYNTAX IDE",
-    "directories": { "output": "release" },
+    "directories": {
+      "output": "release"
+    },
     "files": [
       "electron/**/*",
       "package.json"
     ],
     "extraResources": [
-      { "from": ".next/standalone", "to": "app" },
-      { "from": ".next/static", "to": "app/.next/static" },
-      { "from": "public", "to": "app/public", "filter": ["**/*"] }
+      {
+        "from": ".next/standalone",
+        "to": "app"
+      },
+      {
+        "from": ".next/static",
+        "to": "app/.next/static"
+      },
+      {
+        "from": "public",
+        "to": "app/public",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "artifactName": "SYNTAX-IDE-Setup-${version}-${arch}.${ext}"
     },
     "nsis": {
@@ -54,4 +76,4 @@
       "shortcutName": "SYNTAX IDE"
     }
   }
-}
+}\n
