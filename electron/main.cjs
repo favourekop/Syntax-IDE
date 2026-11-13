@@ -6,7 +6,7 @@ const http = require("node:http");
 
 const isDev = !app.isPackaged;
 let mainWindow;
-let nextServer;
+let nextServer;\nlet selectedProjectRoot = null;
 const allowedExtensions = new Set([".html", ".htm", ".css", ".js", ".jsx", ".ts", ".tsx", ".json", ".md", ".txt", ".svg", ".xml", ".yml", ".yaml", ".py", ".php", ".sql", ".sh", ".env.example"]);
 const ignoredFolders = new Set(["node_modules", ".git", ".next", "dist", "build", "coverage", ".turbo"]);
 
@@ -60,11 +60,11 @@ function createWindow() {
 
 ipcMain.handle("syntax:choose-folder", async () => {
   const result = await dialog.showOpenDialog(mainWindow, { properties: ["openDirectory", "createDirectory"] });
-  return result.canceled ? null : { path: result.filePaths[0] };
+  selectedProjectRoot = result.canceled ? null : result.filePaths[0];\n  return selectedProjectRoot ? { path: selectedProjectRoot } : null;
 });
 
 ipcMain.handle("syntax:read-project", async (_event, root) => {
-  const safeRoot = path.resolve(String(root || ""));
+  const safeRoot = selectedProjectRoot;\n  if (!safeRoot || path.resolve(String(root || "")) !== path.resolve(safeRoot)) throw new Error("Choose a project folder before accessing files.");
   const entries = await fs.readdir(safeRoot, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
