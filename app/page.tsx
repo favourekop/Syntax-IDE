@@ -178,9 +178,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!preferences.autosave || projectPath === "No folder opened") return;
-    const timer = window.setTimeout(() => { void saveWorkspace(); }, 1200);
+    const timer = window.setTimeout(() => { void saveWorkspace(); }, preferences.autosaveDelay);
     return () => window.clearTimeout(timer);
-  }, [files, preferences.autosave, projectPath]);
+  }, [files, preferences.autosave, preferences.autosaveDelay, projectPath]);
 
   useEffect(() => {
     const onShortcut = (event: KeyboardEvent) => {
@@ -227,7 +227,7 @@ export default function Home() {
         <section className="editorArea">
           <div className="tabs">{files.map((file) => <button key={file.name} className={active === file.name ? "tab activeTab" : "tab"} onClick={() => setActive(file.name)}><Braces size={15}/>{file.name}<span/></button>)}</div>
           <div className="editorMeta"><span>SYNTAX WORKSPACE</span><span>{current.name}</span><span>{current.language.toUpperCase()}</span><span className="metaSpacer"/><button onClick={saveWorkspace}>Save project</button></div>
-          <div className="codeEditor"><Editor height="100%" theme={preferences.theme === "light" ? "vs" : preferences.theme === "high-contrast" ? "hc-black" : "vs-dark"} language={current.language} value={current.value} onChange={updateCode} options={{ minimap: { enabled: preferences.minimap }, wordWrap: preferences.wordWrap, fontSize: preferences.fontSize, fontFamily: "JetBrains Mono, Consolas, monospace", fontLigatures: true, padding: { top: 18 }, automaticLayout: true, scrollBeyondLastLine: false, smoothScrolling: true, cursorBlinking: "smooth" }}/></div>
+          <div className="codeEditor"><Editor height="100%" theme={preferences.theme === "light" ? "vs" : preferences.theme === "high-contrast" ? "hc-black" : "vs-dark"} language={current.language} value={current.value} onChange={updateCode} options={{ minimap: { enabled: preferences.minimap }, lineNumbers: preferences.lineNumbers, tabSize: preferences.tabSize, cursorStyle: preferences.cursorStyle, wordWrap: preferences.wordWrap, fontSize: preferences.fontSize, fontFamily: "JetBrains Mono, Consolas, monospace", fontLigatures: true, padding: { top: 18 }, automaticLayout: true, scrollBeyondLastLine: false, smoothScrolling: true, cursorBlinking: "smooth" }}/></div>
           <div className="bottomPanel">
             <div className="panelTabs"><button className={panel === "terminal" ? "panelActive" : ""} onClick={() => setPanel("terminal")}><Terminal size={15}/> TERMINAL</button><button className={panel === "output" ? "panelActive" : ""} onClick={() => setPanel("output")}>OUTPUT</button><button className={panel === "debug" ? "panelActive" : ""} onClick={() => setPanel("debug")}><Bug size={14}/> DEBUG</button><button className={panel === "preview" ? "panelActive" : ""} onClick={() => setPanel("preview")}>LOCAL PREVIEW</button>{panel === "preview" && <><button onClick={runLocalPreview} disabled={previewStarting || !!previewUrl}>{previewStarting ? "STARTING…" : "START PREVIEW"}</button><button onClick={stopLocalPreview} disabled={!previewUrl}>STOP</button></>}<span/><button title="Hide panel"><PanelBottom size={16}/></button></div>
             {panel === "terminal" && <div className="terminalContent terminalLive"><pre aria-live="polite">{terminalOutput}</pre><form className="terminalCommand" onSubmit={executeCommand}><span>$</span><input aria-label="Terminal command" value={terminalCommand} onChange={(event) => setTerminalCommand(event.target.value)} placeholder={projectPath === "No folder opened" ? "Open a project folder to run commands" : "Enter a command, e.g. npm run dev"} disabled={projectPath === "No folder opened" || running}/><button type="submit" disabled={projectPath === "No folder opened" || running}>Run</button><button type="button" onClick={stopCommand} disabled={!running}>Stop</button></form></div>}
