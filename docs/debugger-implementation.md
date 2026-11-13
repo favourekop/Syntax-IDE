@@ -2,7 +2,18 @@
 
 ## Debugger contract
 
-The debugger must be a real runtime debugger, not a mock panel. The first supported target is Node.js JavaScript/TypeScript projects on Windows 10/11. The architecture uses the Debug Adapter Protocol (DAP) between the workbench and a local adapter, with Node's inspector protocol behind the adapter.
+The debugger must be a real runtime debugger, not a mock panel. The first supported target is Node.js JavaScript/TypeScript projects on Windows 10/11. The current desktop branch now contains a first Node.js debugger transport that speaks the Chrome DevTools Protocol (CDP) to the local Node inspector. A future adapter layer can normalize this into DAP for additional runtimes.
+
+## Implemented in the current development branch
+
+- Starts `.js`, `.cjs`, and `.mjs` entry files with the inspector bound to `127.0.0.1` and `--inspect-brk` so the entry can pause before user code runs.
+- Discovers the ephemeral inspector endpoint and connects over WebSocket.
+- Supports set/remove breakpoint IPC, continue, pause, step over, step into, step out, and stop.
+- Streams paused call frames, scope objects, console output, and runtime exceptions to the workbench.
+- Exposes scope-property inspection to the variables view.
+- Cleans up the debug process on stop and application exit.
+
+This is implementation work, not a verified release: the full Windows integration tests still need to pass.
 
 ## First release scope
 
