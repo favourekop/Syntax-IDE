@@ -7,12 +7,13 @@ const WebSocket = require("ws");
 let child = null;
 let socket = null;
 let rootPath = null;
-let windowRef = null;
+let getWindowRef = null;
 let nextId = 1;
 const pending = new Map();
 const breakpoints = new Map();
 
 function emit(channel, payload) {
+  const windowRef = getWindowRef?.();
   if (windowRef && !windowRef.isDestroyed()) windowRef.webContents.send(channel, payload);
 }
 
@@ -117,7 +118,7 @@ function inside(root, target) {
 }
 
 function attachDebugger(ipcMain, getWindow, getProjectRoot) {
-  windowRef = getWindow();
+  getWindowRef = getWindow;
   ipcMain.handle("syntax:debug-start", async (_event, entry) => {
     if (child) return { ok: false, error: "A debug session is already active." };
     rootPath = getProjectRoot();
