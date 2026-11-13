@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Editor from "@monaco-editor/react";
 import {
   Braces, Files, Search, GitBranch, Play, Blocks, Cloud, Settings,
@@ -21,7 +21,34 @@ export default function Home() {
   const [explorerOpen, setExplorerOpen] = useState(true);
   const [message, setMessage] = useState("Welcome to SYNTAX IDE. Your desktop workspace is ready.");
   const [projectPath, setProjectPath] = useState("No folder opened");
+  const [terminalOutput, setTerminalOutput] = useState("SYNTAX IDE local terminal\\nOpen a project folder, then enter a command below.\\n");
+  const [terminalCommand, setTerminalCommand] = useState("");
+  const [running, setRunning] = useState(false);
   const current = files.find((file) => file.name === active) ?? files[0];
+
+  useEffect(() => {
+    const unsubscribe = window.syntaxDesktop?.onTerminalOutput((payload) => {
+      setTerminalOutput((value) => (value + payload.text).slice(-24000));
+      if (payload.stream === "system" && payload.text.includes("process exited")) setRunning(false);
+    });
+    return () => unsubscribe?.();
+  }, []);
+
+  async function executeCommand(event?: React.FormEvent) {
+    event?.preventDefault();
+    const command = terminalCommand.trim();
+    if (!command) return;
+    setTerminalOutput((value) => value + `\\n$ ${command}\\n`);
+    setTerminalCommand("");
+    setRunning(true);
+    const result = await window.syntaxDesktop?.runCommand(command);
+    if (!result?.ok) { setTerminalOutput((value) => value + (result?.error ?? "Desktop runtime is unavailable.") + "\\n"); setRunning(false); }
+  }
+
+  async function stopCommand() {
+    const result = await window.syntaxDesktop?.stopCommand();
+    if (!result?.ok) setTerminalOutput((value) => value + (result?.error ?? "Unable to stop process.") + "\\n");
+  }
   const previewDoc = useMemo(() => {
     const html = files.find((file) => file.name === "index.html")?.value ?? "<h1>Start building</h1>";
     const css = files.find((file) => file.name === "styles.css")?.value ?? "";
@@ -85,7 +112,7 @@ export default function Home() {
           <div className="codeEditor"><Editor height="100%" theme="vs-dark" language={current.language} value={current.value} onChange={updateCode} options={{ minimap: { enabled: true }, fontSize: 14, fontFamily: "JetBrains Mono, Consolas, monospace", fontLigatures: true, padding: { top: 18 }, automaticLayout: true, scrollBeyondLastLine: false, smoothScrolling: true, cursorBlinking: "smooth" }}/></div>
           <div className="bottomPanel">
             <div className="panelTabs"><button className={panel === "terminal" ? "panelActive" : ""} onClick={() => setPanel("terminal")}><Terminal size={15}/> TERMINAL</button><button className={panel === "output" ? "panelActive" : ""} onClick={() => setPanel("output")}>OUTPUT</button><button className={panel === "preview" ? "panelActive" : ""} onClick={() => setPanel("preview")}>LOCAL PREVIEW</button><span/><button title="Hide panel"><PanelBottom size={16}/></button></div>
-            {panel === "terminal" && <div className="terminalContent"><p>SYNTAX IDE terminal</p><p>{message}</p><p className="terminalHint">Local shell integration is the next implementation milestone.</p></div>}
+            {panel === "terminal" && <div className="terminalContent terminalLive"><pre aria-live="polite">{terminalOutput}</pre><form className="terminalCommand" onSubmit={executeCommand}><span>$</span><input aria-label="Terminal command" value={terminalCommand} onChange={(event) => setTerminalCommand(event.target.value)} placeholder={projectPath === "No folder opened" ? "Open a project folder to run commands" : "Enter a command, e.g. npm run dev"} disabled={projectPath === "No folder opened" || running}/><button type="submit" disabled={projectPath === "No folder opened" || running}>Run</button><button type="button" onClick={stopCommand} disabled={!running}>Stop</button></form></div>}
             {panel === "output" && <div className="terminalContent"><p>BUILD OUTPUT</p><p>{message}</p></div>}
             {panel === "preview" && <iframe title="Private local project preview" sandbox="allow-scripts" srcDoc={previewDoc} className="previewFrame"/>}
           </div>
