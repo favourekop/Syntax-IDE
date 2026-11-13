@@ -215,6 +215,20 @@ function attachDebugger(ipcMain, getWindow, getProjectRoot) {
     catch (error) { return { ok: false, error: error.message }; }
   });
 
+  ipcMain.handle("syntax:debug-evaluate", async (_event, expression, callFrameId) => {
+    if (!socket) return { ok: false, error: "Start a debug session first." };
+    const source = String(expression || "").trim();
+    if (!source || source.length > 1000) return { ok: false, error: "Enter an expression up to 1,000 characters." };
+    try {
+      const result = callFrameId
+        ? await send("Debugger.evaluateOnCallFrame", { callFrameId: String(callFrameId), expression: source, returnByValue: true, generatePreview: true, silent: false })
+        : await send("Runtime.evaluate", { expression: source, returnByValue: true, generatePreview: true, silent: false });
+      if (result.exceptionDetails) return { ok: false, error: result.exceptionDetails.text || result.exceptionDetails.exception?.description || "Expression evaluation failed." };
+      const remote = result.result || {};
+      return { ok: true, value: remote.value ?? remote.description ?? remote.type ?? "undefined" };
+    } catch (error) { return { ok: false, error: error.message }; }
+  });
+
   ipcMain.handle("syntax:debug-properties", async (_event, objectId) => {
     if (!socket || typeof objectId !== "string" || objectId.length > 500) return { ok: false, error: "Invalid or inactive debugger object." };
     try {
