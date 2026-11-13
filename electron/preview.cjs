@@ -22,6 +22,9 @@ function waitForPreview(child, timeout = 90000) {
     let settled = false;
     const started = Date.now();
     const output = [];
+    const collect = chunk => { output.push(chunk.toString()); if (output.length > 80) output.shift(); };
+    child.stdout.on("data", collect);
+    child.stderr.on("data", collect);
     const inspect = async () => {
       if (settled) return;
       const match = output.join("").match(/https?:\\/\\/(?:localhost|127\\.0\\.0\\.1):([0-9]{2,5})/i);
