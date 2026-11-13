@@ -3,6 +3,7 @@ const path = require("node:path");
 const fs = require("node:fs/promises");
 const { spawn } = require("node:child_process");
 const http = require("node:http");
+const { attachRuntime } = require("./runtime.cjs");
 
 const isDev = !app.isPackaged;
 let mainWindow;
@@ -95,6 +96,8 @@ ipcMain.handle("syntax:write-project", async (_event, root, files) => {
   }
   return { ok: true };
 });
+
+attachRuntime(ipcMain, () => mainWindow, () => selectedProjectRoot);
 
 app.whenReady().then(async () => {
   try {
