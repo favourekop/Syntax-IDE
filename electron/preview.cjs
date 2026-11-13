@@ -28,7 +28,7 @@ function waitForPreview(child, timeout = 90000) {
     child.stderr.on("data", collect);
     const inspect = async () => {
       if (settled) return;
-      const match = output.join("").match(/https?:\\/\\/(?:localhost|127\\.0\\.0\\.1):([0-9]{2,5})/i);
+      const match = output.join("").match(/https?:\/\/(?:localhost|127\.0\.0\.1):([0-9]{2,5})/i);
       if (match && await probePort(Number(match[1]))) {
         settled = true;
         resolve("http://127.0.0.1:" + match[1]);
@@ -82,7 +82,7 @@ function attachPreview(ipcMain, getWindow, getProjectRoot) {
     previewProcess.stdout.on("data", chunk => send("stdout", chunk));
     previewProcess.stderr.on("data", chunk => send("stderr", chunk));
     previewProcess.once("close", code => {
-      send("system", "\\n[preview process exited with code " + code + "]\\n");
+      send("system", "\n[preview process exited with code " + code + "]\n");
       previewProcess = null;
       previewWindow = null;
       activeUrl = null;
