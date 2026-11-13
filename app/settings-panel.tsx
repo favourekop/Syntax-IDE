@@ -19,7 +19,7 @@ const defaults: EditorPreferences = {
   wordWrap: "off",
   autosave: false,
   theme: "syntax-dark",
-  previewCommand: "npm run dev -- --host 127.0.0.1",
+  previewCommand: "",
   keybindings: {
     save: "Ctrl+S",
     openFolder: "Ctrl+O",
@@ -100,7 +100,7 @@ export function SettingsPanel({ onClose, onChange }: {
           <label>Colour theme <select value={prefs.theme} onChange={e => update("theme", e.target.value as EditorPreferences["theme"])}><option value="syntax-dark">SYNTAX Dark</option><option value="light">Light</option><option value="high-contrast">High contrast</option></select></label>
           <label className="settingToggle">Autosave project files <input type="checkbox" checked={prefs.autosave} onChange={e => update("autosave", e.target.checked)}/></label>
         </section>
-        <section className="settingsSection"><h3><Monitor size={15}/> Local preview</h3><label>Development command<input className="settingText" value={prefs.previewCommand} onChange={e => update("previewCommand", e.target.value)} placeholder="npm run dev -- --host 127.0.0.1"/></label><p>Runs on this computer and binds to loopback. Preview is never published automatically.</p></section>
+        <section className="settingsSection"><h3><Monitor size={15}/> Local preview</h3><label>Development command<input className="settingText" value={prefs.previewCommand} onChange={e => update("previewCommand", e.target.value)} placeholder="Auto-detect from package.json (or enter a command)"/></label><p>Runs on this computer and binds to loopback. Preview is never published automatically.</p></section>
         <section className="settingsSection"><h3><Keyboard size={15}/> Keyboard shortcuts</h3>{shortcuts.map(([key, label]) => <div className="shortcutRow" key={key}><span>{label}</span><button onClick={() => setCapture(key)}>{capture === key ? "Press keys…" : prefs.keybindings[key]}</button></div>)}<p>Choose a shortcut, then press the key combination. Press Escape to cancel.</p></section>
         <section className="settingsSection"><h3><Terminal size={15}/> Workspace</h3><p>Project files remain on your computer. IDE preferences are stored locally on this device.</p></section>
       </div>
