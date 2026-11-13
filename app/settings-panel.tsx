@@ -5,9 +5,13 @@ import { X, Keyboard, Monitor, Code2, Terminal, RotateCcw } from "lucide-react";
 
 export type EditorPreferences = {
   fontSize: number;
+  tabSize: number;
+  lineNumbers: "on" | "off";
+  cursorStyle: "line" | "block" | "underline";
   minimap: boolean;
   wordWrap: "on" | "off";
   autosave: boolean;
+  autosaveDelay: number;
   theme: "syntax-dark" | "light" | "high-contrast";
   previewCommand: string;
   keybindings: Record<string, string>;
@@ -15,9 +19,13 @@ export type EditorPreferences = {
 
 const defaults: EditorPreferences = {
   fontSize: 14,
+  tabSize: 2,
+  lineNumbers: "on",
+  cursorStyle: "line",
   minimap: true,
   wordWrap: "off",
   autosave: false,
+  autosaveDelay: 1200,
   theme: "syntax-dark",
   previewCommand: "",
   keybindings: {
@@ -98,10 +106,10 @@ export function SettingsPanel({ onClose, onChange }: {
       <div className="settingsBody">
         <section className="settingsSection"><h3><Code2 size={15}/> Editor</h3>
           <label>Font size <strong>{prefs.fontSize}px</strong><input type="range" min="11" max="24" value={prefs.fontSize} onChange={e => update("fontSize", Number(e.target.value))}/></label>
-          <label className="settingToggle">Show minimap <input type="checkbox" checked={prefs.minimap} onChange={e => update("minimap", e.target.checked)}/></label>
+          <label>Tab size <select value={prefs.tabSize} onChange={e => update("tabSize", Number(e.target.value))}><option value={2}>2 spaces</option><option value={4}>4 spaces</option><option value={8}>8 spaces</option></select></label>\n          <label>Line numbers <select value={prefs.lineNumbers} onChange={e => update("lineNumbers", e.target.value as EditorPreferences["lineNumbers"])}><option value="on">On</option><option value="off">Off</option></select></label>\n          <label>Cursor style <select value={prefs.cursorStyle} onChange={e => update("cursorStyle", e.target.value as EditorPreferences["cursorStyle"])}><option value="line">Line</option><option value="block">Block</option><option value="underline">Underline</option></select></label>\n          <label className="settingToggle">Show minimap <input type="checkbox" checked={prefs.minimap} onChange={e => update("minimap", e.target.checked)}/></label>
           <label>Word wrap <select value={prefs.wordWrap} onChange={e => update("wordWrap", e.target.value as EditorPreferences["wordWrap"])}><option value="off">Off</option><option value="on">On</option></select></label>
           <label>Colour theme <select value={prefs.theme} onChange={e => update("theme", e.target.value as EditorPreferences["theme"])}><option value="syntax-dark">SYNTAX Dark</option><option value="light">Light</option><option value="high-contrast">High contrast</option></select></label>
-          <label className="settingToggle">Autosave project files <input type="checkbox" checked={prefs.autosave} onChange={e => update("autosave", e.target.checked)}/></label>
+          <label className="settingToggle">Autosave project files <input type="checkbox" checked={prefs.autosave} onChange={e => update("autosave", e.target.checked)}/></label>\n          <label>Autosave delay <strong>{prefs.autosaveDelay} ms</strong><input type="range" min="500" max="5000" step="100" value={prefs.autosaveDelay} onChange={e => update("autosaveDelay", Number(e.target.value))}/></label>
         </section>
         <section className="settingsSection"><h3><Monitor size={15}/> Local preview</h3><label>Development command<input className="settingText" value={prefs.previewCommand} onChange={e => update("previewCommand", e.target.value)} placeholder="Auto-detect from package.json (or enter a command)"/></label><p>Runs on this computer and binds to loopback. Preview is never published automatically.</p></section>
         <section className="settingsSection"><h3><Keyboard size={15}/> Keyboard shortcuts</h3>{shortcuts.map(([key, label]) => <div className="shortcutRow" key={key}><span>{label}</span><button onClick={() => setCapture(key)}>{capture === key ? "Press keys…" : prefs.keybindings[key]}</button></div>)}<p>Choose a shortcut, then press the key combination. Press Escape to cancel.</p>{conflicts.length > 0 && <p className="shortcutWarning">Shortcut conflicts: {conflicts.map(([binding, actions]) => binding + " (" + actions.join(", ") + ")").join("; ")}. Assign unique combinations before relying on these shortcuts.</p>}</section>
