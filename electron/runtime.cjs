@@ -1,6 +1,17 @@
 const { spawn } = require("node:child_process");
 const path = require("node:path");
 
+function terminateProcessTree(child) {
+  if (!child || !child.pid) return;
+  if (process.platform === "win32") {
+    const killer = spawn("taskkill", ["/pid", String(child.pid), "/t", "/f"], { windowsHide: true, stdio: "ignore" });
+    killer.on("error", () => { try { child.kill(); } catch {} });
+  } else {
+    try { process.kill(-child.pid, "SIGTERM"); }
+    catch { try { child.kill("SIGTERM"); } catch {} }
+  }
+}
+
 let activeProcess = null;
 let activeWindow = null;
 
@@ -17,7 +28,8 @@ function attachRuntime(ipcMain, getWindow, getProjectRoot) {
       cwd: path.resolve(root),
       env: { ...process.env, FORCE_COLOR: "0" },
       windowsHide: true,
-      shell: false
+      shell: false,
+      detached: !isWindows
     });
     activeWindow = win;
     const send = (stream, chunk) => {
@@ -35,7 +47,7 @@ function attachRuntime(ipcMain, getWindow, getProjectRoot) {
   });
   ipcMain.handle("syntax:stop-command", async () => {
     if (!activeProcess) return { ok: false, error: "No running command." };
-    activeProcess.kill();
+    terminateProcessTree(activeProcess);
     return { ok: true };
   });
 }
