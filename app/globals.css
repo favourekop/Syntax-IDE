@@ -85,7 +85,7 @@ html:has(.siteShell),body:has(.siteShell){height:auto;min-height:100%;overflow-x
 .orbitLabel{position:absolute;padding:7px 10px;border:1px solid #31553d;border-radius:3px;background:#0a1710;color:#9db7a5;font-size:7px;letter-spacing:1.3px}
 .labelOne{top:54px;left:17%}.labelTwo{right:5%;top:48%}.labelThree{bottom:49px;left:29%}
 .principlesCopy h2{margin:25px 0 18px;font-size:clamp(43px,5vw,65px);line-height:1.06;letter-spacing:-3.2px}
-.principlesCopy>p{max-width:480px;color:#9caf a3;font-size:12px;line-height:1.9}
+.principlesCopy>p{max-width:480px;color:#9cafa3;font-size:12px;line-height:1.9}
 .principlesCopy ul{display:grid;gap:13px;margin:24px 0 0;padding:0;list-style:none;color:#c5d7ca;font-size:11px}
 .principlesCopy li{display:flex;align-items:center;gap:10px}.principlesCopy li svg{color:var(--site-green)}
 .workflowSection{max-width:1440px;margin:auto;padding:115px 7.2% 125px}
@@ -102,7 +102,7 @@ html:has(.siteShell),body:has(.siteShell){height:auto;min-height:100%;overflow-x
 .releaseContent{position:relative;display:grid;grid-template-columns:1fr .65fr;gap:12%;align-items:center;margin-top:32px}
 .releaseTag{display:inline-flex;align-items:center;gap:8px;color:#8cc6a0;font-size:8px;letter-spacing:1.7px}
 .releaseContent h2{margin:25px 0 20px;font-size:clamp(48px,5.8vw,76px);line-height:1;letter-spacing:-4px}
-.releaseContent>div:first-child>p{max-width:480px;color:#9caf a3;font-size:13px;line-height:1.85}
+.releaseContent>div:first-child>p{max-width:480px;color:#9cafa3;font-size:13px;line-height:1.85}
 .releaseMeta{display:flex;gap:23px;margin-top:30px}.releaseMeta span{display:flex;align-items:center;gap:7px;color:#a8c2b0;font-size:8px;letter-spacing:1px}.releaseMeta svg{color:var(--site-green)}
 .releaseCard{padding:25px;border:1px solid #355840;border-radius:8px;background:linear-gradient(145deg,#102319,#0a160f);box-shadow:0 22px 70px #0005}
 .releaseCardTop{display:flex;justify-content:space-between;color:#789582;font-size:8px;letter-spacing:1.2px}
