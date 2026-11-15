@@ -5,7 +5,6 @@ export const metadata: Metadata = {
   title: "SYNTAX IDE — Beyond the Code",
   description: "A local-first development environment for builders. Discover SYNTAX IDE by Ekop Designz Hub.",
   applicationName: "SYNTAX IDE",
-  metadataBase: new URL("https://syntax-ide.onrender.com"),
   openGraph: { title: "SYNTAX IDE — Beyond the Code", description: "A considered development environment for people who turn ideas into working software.", type: "website" }
 };
 
