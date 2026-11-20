@@ -143,3 +143,15 @@ html:has(.siteShell),body:has(.siteShell){height:auto;min-height:100%;overflow-x
 .notFoundCard h1 span{color:var(--site-green)}
 .notFoundCard>p:not(.sectionKicker){margin:0 0 28px;color:#9cafa3;font-size:13px;line-height:1.8}
 @media(max-width:600px){.notFoundCard{padding:38px 25px}.notFoundCard h1{font-size:52px}}
+
+.siteHeaderActions{display:flex;align-items:center;gap:12px}
+.mobileMenuButton{display:none;width:37px;height:37px;align-items:center;justify-content:center;border:1px solid #315a40;border-radius:5px;background:#0d2015;color:#d8eee0;cursor:pointer}
+@media(max-width:700px){
+.siteHeader{position:relative;z-index:30}
+.mobileMenuButton{display:flex}
+.siteNav{display:none;position:absolute;top:69px;left:0;right:0;padding:14px 5% 18px;background:#09150e;border-bottom:1px solid #31513d;box-shadow:0 20px 30px #0006;flex-direction:column;align-items:stretch;gap:0}
+.siteNav.siteNavOpen{display:flex}
+.siteNav a{padding:13px 3px;border-bottom:1px solid #1c3326;font-size:12px}
+.siteNav a:last-child{border-bottom:0}
+.siteHeaderActions .headerCta{font-size:9px}
+}
