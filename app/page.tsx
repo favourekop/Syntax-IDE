@@ -54,7 +54,7 @@ export default function Home() {
         <div className="heroScroll"><span>SCROLL TO EXPLORE</span><div/></div>
       </section>
 
-      <section className="introStrip" id="workflow">
+      <section className="introStrip">
         <div className="stripLabel">A BETTER SPACE<br/>TO MAKE THINGS</div>
         <p>Great software starts with a clear idea. SYNTAX is being built to give that idea the room, tools and focus it deserves.</p>
         <div className="stripMark"><Sparkles size={23}/><span>LESS FRICTION.<br/>MORE CREATION.</span></div>
@@ -82,7 +82,7 @@ export default function Home() {
         <div className="principlesCopy"><div className="sectionKicker">02 — OUR PRINCIPLE</div><h2>Your work.<br/><span>Your machine.</span><br/>Your rules.</h2><p>SYNTAX is being shaped around a simple principle: your projects belong to you. The desktop experience is designed for local work, with publishing and connected services kept intentional.</p><ul><li><Check size={15}/> Local project files</li><li><Check size={15}/> Private previews on your machine</li><li><Check size={15}/> No automatic project publishing</li></ul></div>
       </section>
 
-      <section className="workflowSection">
+      <section className="workflowSection" id="workflow">
         <div className="sectionKicker">03 — THE FLOW</div><h2>From first line<br/>to <span>finished idea.</span></h2>
         <div className="workflowSteps">
           <article><span>01</span><div><FolderOpen size={20}/><h3>Open</h3><p>Bring a project from your computer into your workspace.</p></div></article>
