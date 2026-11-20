@@ -114,7 +114,7 @@ export default function Home() {
       </section>
 
       <footer className="siteFooter">
-        <div className="footerMain"><a className="siteBrand" href="#top"><span className="siteBrandMark"><Braces size={22}/></span><span className="siteBrandName">SYNTAX<small>BEYOND THE CODE.</small></span></a><p>Tools for the curious.<br/>Space for what comes next.</p><a className="footerTop" href="#top">BACK TO TOP <ArrowUpRight size={14}/></a></div>
+        <div className="footerMain"><a className="siteBrand" href="#top"><span className="siteBrandMark"><Braces size={22}/></span><span className="siteBrandName">SYNTAX<small>BEYOND THE CODE.</small></span></a><p>Tools for the curious.<br/>Space for what comes next.</p><div className="footerLinks"><a href="mailto:cs@ekopdesignzhub.org">Contact the team</a><a href="https://github.com/favourekop/Syntax-IDE" target="_blank" rel="noreferrer">GitHub repository</a></div><a className="footerTop" href="#top">BACK TO TOP <ArrowUpRight size={14}/></a></div>
         <div className="footerBottom"><span>© 2026 SYNTAX IDE · EKOP DESIGNZ HUB</span><span>CRAFTED FOR BUILDERS.</span></div>
       </footer>
     </main>
