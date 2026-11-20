@@ -22,9 +22,9 @@ export default function Home() {
           <span className="siteBrandName">SYNTAX<small>BEYOND THE CODE.</small></span>
         </a>
         <nav className="siteNav" aria-label="Main navigation">
-          <a href="#features">Features</a><a href="#workflow">Workflow</a><a href="#principles">Why SYNTAX</a><a href="#release">Release</a>
+          <a href="#features">Features</a><a href="#workflow">Workflow</a><a href="#principles">Why SYNTAX</a><a href="#release">Release</a><a href="#faq">FAQ</a>
         </nav>
-        <a className="headerCta" href="#release">Get updates <ArrowUpRight size={15}/></a>
+        <a className="headerCta" href="#release">Release status <ArrowUpRight size={15}/></a>
       </header>
 
       <section className="heroSection" id="top">
@@ -97,6 +97,19 @@ export default function Home() {
           <article><span>02</span><div><Code2 size={20}/><h3>Create</h3><p>Write, shape and refine your code in a focused editor.</p></div></article>
           <article><span>03</span><div><Play size={20}/><h3>Run</h3><p>Build and inspect your work with local tools and previews.</p></div></article>
           <article><span>04</span><div><Zap size={20}/><h3>Launch</h3><p>Choose when and where your finished work goes live.</p></div></article>
+        </div>
+      </section>
+
+
+      <section className="faqSection" id="faq">
+        <div className="sectionKicker">05 — GOOD TO KNOW</div>
+        <div className="faqHeading"><h2>Questions before<br/><span>the first build.</span></h2><p>Clear answers about what SYNTAX is today and what we're preparing next.</p></div>
+        <div className="faqList">
+          <details><summary>Is SYNTAX IDE available to download now?<span>+</span></summary><p>Not yet. The desktop application is in development. We'll publish a download only when a Windows installer has been built, tested and verified.</p></details>
+          <details><summary>Which operating systems will be supported first?<span>+</span></summary><p>The first planned installer targets Windows 10 and Windows 11. macOS and Linux are planned for later releases.</p></details>
+          <details><summary>Will my project files be uploaded automatically?<span>+</span></summary><p>No. SYNTAX is being designed around local-first project work. Your projects should remain on your computer unless you deliberately choose a connected service or publish action.</p></details>
+          <details><summary>What tools are planned inside the IDE?<span>+</span></summary><p>The desktop roadmap includes a code editor, project explorer, terminal, local development preview, debugging tools and workspace settings. Availability will be documented as each capability is verified.</p></details>
+          <details><summary>When will system requirements and release notes be published?<span>+</span></summary><p>System requirements, version details, installation guidance and release notes will be published alongside the first verified installer.</p></details>
         </div>
       </section>
 
