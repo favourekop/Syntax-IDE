@@ -1,3 +1,4 @@
+import SiteHeader from "./site-header";
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Braces, Bug, Check,
   Command, Code2, FileCode2, FolderOpen, GitBranch, Globe2,
@@ -16,16 +17,7 @@ const features = [
 export default function Home() {
   return (
     <main className="siteShell">
-      <header className="siteHeader">
-        <a className="siteBrand" href="#top" aria-label="SYNTAX IDE home">
-          <span className="siteBrandMark"><Braces size={22}/></span>
-          <span className="siteBrandName">SYNTAX<small>BEYOND THE CODE.</small></span>
-        </a>
-        <nav className="siteNav" aria-label="Main navigation">
-          <a href="#features">Features</a><a href="#workflow">Workflow</a><a href="#principles">Why SYNTAX</a><a href="#release">Release</a><a href="#faq">FAQ</a>
-        </nav>
-        <a className="headerCta" href="#release">Release status <ArrowUpRight size={15}/></a>
-      </header>
+      <SiteHeader />
 
       <section className="heroSection" id="top">
         <div className="heroGlow"/>
