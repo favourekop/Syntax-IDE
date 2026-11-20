@@ -155,3 +155,8 @@ html:has(.siteShell),body:has(.siteShell){height:auto;min-height:100%;overflow-x
 .siteNav a:last-child{border-bottom:0}
 .siteHeaderActions .headerCta{font-size:9px}
 }
+
+.footerLinks{display:flex;align-items:center;gap:18px}
+.footerLinks a{color:#9db6a5;text-decoration:none;font-size:9px;transition:color .2s}
+.footerLinks a:hover{color:var(--site-green)}
+@media(max-width:700px){.footerLinks{order:3;width:100%;gap:18px}.footerLinks a{font-size:9px}.footerTop{margin-left:auto}}
